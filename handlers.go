@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 func midLogger(fn http.HandlerFunc) http.HandlerFunc {
@@ -82,7 +83,11 @@ func listSounds(vault Sounds) http.HandlerFunc {
 // part for TextToSpeech
 
 func ttsPostHandler() http.HandlerFunc {
-	var tts = tts{}
+	var tts = NewTTS(
+		viper.GetBool("flite"),
+		viper.GetString("polly.accessKey"),
+		viper.GetString("polly.secretKey"),
+	)
 	var m = &MpvPlayer{}
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()

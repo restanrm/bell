@@ -9,4 +9,22 @@ Endpoint|Method|Description
 /api/v1/tts | POST | send text to play
 
 # dependencies 
-This program needs `mpv` and `flite` to produce sound and to make text to speach
+This program needs `mpv` to play sound.
+
+The text to speach functionnality need an aws pairs of key to work. It uses Polly service. 
+[see here](https://console.aws.amazon.com/iam/home#/security_credential) to create services to access it.
+
+
+# docker run 
+```bash
+docker run --rm -it \
+  -e POLLY_ACCESS_KEY=$POLLY_ACCESS_KEY \
+  -e POLLY_SECRET_KEY=$POLLY_SECRET_KEY \
+  -p 10101:10101 \
+  -v /dev/snd:/dev/snd \
+  -v /dev/shm:/dev/shm \
+  -v /run/user/$uid/pulse:/run/user/$uid/pulse \
+  -v /var/lib/dbus:/var/lib/dbus \
+  --privileged \
+  restanrm/bell:latest
+```

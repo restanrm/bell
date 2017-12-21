@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -10,22 +11,32 @@ import (
 	"github.com/spf13/viper"
 )
 
-func viperConfig() {
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath(".")
-	viper.AddConfigPath("/data/")
-	err := viper.ReadInConfig()
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err,
-		}).Error("Failed to read config file")
-		os.Exit(-1)
+func init() {
+	viper.BindEnv("storefile", "STORE_FILE")
+	viper.SetDefault("storefile", "store.json")
+	viper.BindEnv("soundDir", "SOUND_DIR")
+	viper.SetDefault("soundDir", "sounds")
+	viper.BindEnv("listen", "LISTEN_ADDR")
+	viper.SetDefault("listen", ":10101")
+	viper.BindEnv("polly.accessKey", "POLLY_ACCESS_KEY")
+	viper.BindEnv("polly.secretKey", "POLLY_SECRET_KEY")
+	viper.BindEnv("flite", "FLITE")
+	viper.SetDefault("flite", true)
+}
+
+func exitIfNotSetted(key string) {
+	s := viper.GetString(key)
+	if s == "" {
+		fmt.Printf("required variable %q is not setted\n", key)
+		os.Exit(1)
 	}
 }
 
 func main() {
-	viperConfig()
+	if !viper.GetBool("flite") {
+		exitIfNotSetted("polly.accessKey")
+		exitIfNotSetted("polly.secretKey")
+	}
 	var sounds Sounds
 
 	sounds.Load(viper.GetString("storefile"))

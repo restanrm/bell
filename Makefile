@@ -1,4 +1,4 @@
 build: 
-	GOOS=linux go build -o app 
+#	GOOS=linux go build -o app 
 	docker build -t restanrm/bell . 
-	rm app
+#	rm app
