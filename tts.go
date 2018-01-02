@@ -1,6 +1,8 @@
 package main
 
 import (
+	"crypto/md5"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -26,8 +28,7 @@ func NewTTS(flite bool, accessKey, secretKey string) *tts {
 }
 
 // createAudioFlite creates an audiofile with the system command "flite"
-func (t *tts) createAudioFlite(text, filepath string) (string, error) {
-	filename := filepath + ".wav"
+func (t *tts) createAudioFlite(text, filename string) error {
 	cmd := exec.Command("flite",
 		"-t", text,
 		"-o", filename,
@@ -42,14 +43,13 @@ func (t *tts) createAudioFlite(text, filepath string) (string, error) {
 			"tempFile": filename,
 			"text":     text,
 		}).Error("Failed to create speech from flite")
-		return "", err
+		return err
 	}
-	return filename, nil
+	return nil
 }
 
 // createAudioPolly creates an audiofile with the polly API
-func (t *tts) createAudioPolly(text, filepath string) (string, error) {
-	filename := filepath + ".mp3"
+func (t *tts) createAudioPolly(text, filename string) error {
 	out, err := t.polly.Speech(text)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -57,7 +57,7 @@ func (t *tts) createAudioPolly(text, filepath string) (string, error) {
 			"text":     text,
 			"filename": filename,
 		}).Error("Failed to query polly to transform text to MP3")
-		return "", err
+		return err
 	}
 
 	// write speech to file
@@ -67,42 +67,79 @@ func (t *tts) createAudioPolly(text, filepath string) (string, error) {
 			"error":    err,
 			"filename": filename,
 		}).Error("Failed to write temporary file")
-		return "", err
+		return err
 	}
-	return filename, nil
+	return nil
+}
+
+func getHash(text string) string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(text)))
+}
+
+func exist(filename string) bool {
+	_, err := os.Stat(filename)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 // Say create a tempfile based on the choosen technology of TTS and order the player to
 // play it on speaker
 func (t *tts) Say(text string, player Player) error {
-	fd, err := ioutil.TempFile("/tmp", "")
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err,
-		}).Error("Failed to create a temporary file")
-		return err
-	}
-	fd.Close()
-	var filename string
-	defer os.Remove(filename)
-	defer os.Remove(fd.Name())
+	var err error
+	filepath := "/tmp/" + getHash(text)
 
+	fliteFilename := filepath + ".wav"
+	pollyFilename := filepath + ".mp3"
+
+	// cached section
+	// if polly file exist, play it
+	if exist(pollyFilename) {
+		player.PlayFilepath(pollyFilename)
+		return nil
+	}
+	// if flite file exist
+	if exist(fliteFilename) {
+		// if flite it disabled
+		if !t.flite {
+			// try to create pollyfile
+			err = t.createAudioPolly(text, pollyFilename)
+			if err != nil {
+				// if fail, play flitefile
+				player.PlayFilepath(fliteFilename)
+				return nil
+			}
+			// play new pollyfile
+			player.PlayFilepath(pollyFilename)
+			return nil
+		}
+		// flite is enabled and file exist, play it
+		player.PlayFilepath(fliteFilename)
+		return nil
+	}
+
+	// no cache, creation of the file
 	if t.flite {
-		filename, err = t.createAudioFlite(text, fd.Name())
+		err = t.createAudioFlite(text, fliteFilename)
 		if err != nil {
 			return err
 		}
+		player.PlayFilepath(fliteFilename)
+		return nil
 	} else {
-		filename, err = t.createAudioPolly(text, fd.Name())
+		err = t.createAudioPolly(text, pollyFilename)
 		if err != nil {
-			filename, err = t.createAudioFlite(text, fd.Name())
+			err = t.createAudioFlite(text, fliteFilename)
 			if err != nil {
 				return err
 			}
+			player.PlayFilepath(fliteFilename)
+			return nil
 		}
+		player.PlayFilepath(pollyFilename)
+		return nil
 	}
 
-	// play speech with player
-	player.PlayFilepath(filename)
 	return nil
 }
