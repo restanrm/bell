@@ -8,6 +8,7 @@ run: build
   -e POLLY_ACCESS_KEY=${POLLY_ACCESS_KEY} \
   -e POLLY_SECRET_KEY=${POLLY_SECRET_KEY} \
   -e FLITE=${FLITE} \
+  -e POLLY_VOICE=${POLLY_VOICE} \
   -p 10101:10101 \
   -v /dev/snd:/dev/snd \
   -v /dev/shm:/dev/shm \

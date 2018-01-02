@@ -9,6 +9,7 @@ import (
 
 	"github.com/restanrm/golang-tts"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type tts struct {
@@ -23,7 +24,7 @@ type Sayer interface {
 func NewTTS(flite bool, accessKey, secretKey string) *tts {
 	polly := golang_tts.New(accessKey, secretKey)
 	polly.Format(golang_tts.MP3)
-	polly.Voice(golang_tts.Amy)
+	polly.Voice(viper.GetString("polly.voice"))
 	return &tts{polly: polly, flite: flite}
 }
 
