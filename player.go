@@ -31,7 +31,7 @@ func (mp *MpvPlayer) play(fp string) error {
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
 			"error":    err,
-			"output":   out,
+			"output":   string(out),
 			"filepath": fp,
 		}).Error("Failed to read file")
 		return err
