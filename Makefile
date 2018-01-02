@@ -7,7 +7,7 @@ run: build
 	docker run --rm -it \
   -e POLLY_ACCESS_KEY=${POLLY_ACCESS_KEY} \
   -e POLLY_SECRET_KEY=${POLLY_SECRET_KEY} \
-  -e FLITE=0 \
+  -e FLITE=${FLITE} \
   -p 10101:10101 \
   -v /dev/snd:/dev/snd \
   -v /dev/shm:/dev/shm \
