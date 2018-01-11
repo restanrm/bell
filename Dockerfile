@@ -1,7 +1,9 @@
-FROM golang:alpine
+FROM ubuntu:17.04
 
-RUN apk update && apk add flite mpv ca-certificates git
-RUN mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
+RUN apt-get update && apt-get -y install \
+    alsa-base alsa-utils pulseaudio \
+    golang git \
+    flite mpv
 RUN go get github.com/restanrm/bell
 
 WORKDIR /data
