@@ -1,4 +1,4 @@
-package main
+package sound
 
 import (
 	"encoding/json"

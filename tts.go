@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/restanrm/bell/player"
 	"github.com/restanrm/golang-tts"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -87,7 +88,7 @@ func exist(filename string) bool {
 
 // Say create a tempfile based on the choosen technology of TTS and order the player to
 // play it on speaker
-func (t *tts) Say(text string, player Player) error {
+func (t *tts) Say(text string, p player.Player) error {
 	var err error
 	filepath := "/tmp/" + getHash(text)
 
@@ -97,7 +98,7 @@ func (t *tts) Say(text string, player Player) error {
 	// cached section
 	// if polly file exist, play it
 	if exist(pollyFilename) {
-		player.PlayFilepath(pollyFilename)
+		p.PlayFilepath(pollyFilename)
 		return nil
 	}
 	// if flite file exist
@@ -108,15 +109,15 @@ func (t *tts) Say(text string, player Player) error {
 			err = t.createAudioPolly(text, pollyFilename)
 			if err != nil {
 				// if fail, play flitefile
-				player.PlayFilepath(fliteFilename)
+				p.PlayFilepath(fliteFilename)
 				return nil
 			}
 			// play new pollyfile
-			player.PlayFilepath(pollyFilename)
+			p.PlayFilepath(pollyFilename)
 			return nil
 		}
 		// flite is enabled and file exist, play it
-		player.PlayFilepath(fliteFilename)
+		p.PlayFilepath(fliteFilename)
 		return nil
 	}
 
@@ -126,7 +127,7 @@ func (t *tts) Say(text string, player Player) error {
 		if err != nil {
 			return err
 		}
-		player.PlayFilepath(fliteFilename)
+		p.PlayFilepath(fliteFilename)
 		return nil
 	} else {
 		err = t.createAudioPolly(text, pollyFilename)
@@ -135,10 +136,10 @@ func (t *tts) Say(text string, player Player) error {
 			if err != nil {
 				return err
 			}
-			player.PlayFilepath(fliteFilename)
+			p.PlayFilepath(fliteFilename)
 			return nil
 		}
-		player.PlayFilepath(pollyFilename)
+		p.PlayFilepath(pollyFilename)
 		return nil
 	}
 

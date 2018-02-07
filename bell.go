@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/restanrm/bell/sound"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -39,7 +40,7 @@ func main() {
 		exitIfNotSetted("polly.accessKey")
 		exitIfNotSetted("polly.secretKey")
 	}
-	var sounds Sounds
+	var sounds sound.Sounds
 
 	sounds.Load(viper.GetString("storefile"))
 

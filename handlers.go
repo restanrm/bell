@@ -8,6 +8,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/restanrm/bell/player"
+	"github.com/restanrm/bell/sound"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -27,8 +29,8 @@ func webLogger(h http.Handler) http.Handler {
 	})
 }
 
-func soundPlayer(vault Sounds) http.HandlerFunc {
-	m := new(MpvPlayer)
+func soundPlayer(vault sound.Sounds) http.HandlerFunc {
+	m := new(player.MpvPlayer)
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		sound := vars["sound"]
@@ -55,7 +57,7 @@ func addNewSound(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Not implemented yet")
 }
 
-func listSounds(vault Sounds) http.HandlerFunc {
+func listSounds(vault sound.Sounds) http.HandlerFunc {
 	// this function list all currently available sounds
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Add("Content-Type", "application/json")
@@ -88,7 +90,7 @@ func ttsPostHandler() http.HandlerFunc {
 		viper.GetString("polly.accessKey"),
 		viper.GetString("polly.secretKey"),
 	)
-	var m = &MpvPlayer{}
+	var m = &player.MpvPlayer{}
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		texts, ok := r.PostForm["text"]
