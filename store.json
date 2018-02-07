@@ -13,5 +13,12 @@
   {"name": "nice", "file_name": "its-a-very-nice.mp3"},
   {"name": "pikachu", "file_name": "pikachu-thunderbolt.mp3"},
   {"name": "sparta", "file_name": "thisissparta.swf.mp3"},
-  {"name": "loose", "file_name": "you-lose-street-fighter-ii-sound-clip-quote-mp3-and-ringtone.mp3"}
+  {"name": "loose", "file_name": "you-lose-street-fighter-ii-sound-clip-quote-mp3-and-ringtone.mp3"},
+  {"name": "train-hits-guy", "file_name": "train_hits_guy.mp3"},
+  {"name": "tada", "file_name": "tada.mp3"},
+  {"name": "crowd-boo-1", "file_name": "crowd_boo_1.mp3"},
+  {"name": "common-fart", "file_name": "common_fart.mp3"},
+  {"name": "audience-applause", "file_name": "audience_applause.mp3"},
+  {"name": "1-person-cheering", "file_name": "1_person_cheering.mp3"},
+  {"name": "dixie-horn", "file_name": "dixie_horn.mp3"}
 ]
