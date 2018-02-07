@@ -27,12 +27,14 @@ var playCmd = &cobra.Command{
 				"server address": viper.GetString("bell.address"),
 				"method":         "PlayCmd.Run",
 			}).Error("Failed to build url")
+			return
 		}
 		resp, err := http.Get(address.String())
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error": err,
 			}).Error("Failed to contact bell server")
+			return
 		}
 		if resp.StatusCode > 299 {
 			logrus.WithFields(logrus.Fields{

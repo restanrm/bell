@@ -25,12 +25,14 @@ var listCmd = &cobra.Command{
 				"server address": viper.GetString("bell.address"),
 				"method":         "listCmd.Run",
 			}).Error("Failed to build url")
+			return
 		}
 		resp, err := http.Get(address.String())
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error": err,
 			}).Error("Failed to contact bell server")
+			return
 		}
 		var sounds sound.Sounds
 		json.NewDecoder(resp.Body).Decode(&sounds)
