@@ -40,15 +40,18 @@ func main() {
 		exitIfNotSetted("polly.accessKey")
 		exitIfNotSetted("polly.secretKey")
 	}
-	var sounds sound.Sounds
 
-	sounds.Load(viper.GetString("storefile"))
+	sounds := sound.Load(viper.GetString("storefile"))
 
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api/v1").Subrouter()
-	//api.HandleFunc("/play", soundPlayer)
+
 	api.HandleFunc("/", listSounds(sounds))
 	api.HandleFunc("/play/{sound:[-a-zA-Z]+}", soundPlayer(sounds))
+	api.HandleFunc("/sounds", addSound(sounds)).Methods("POST")
+	api.HandleFunc("/sounds", listSounds(sounds)).Methods("GET")
+	api.HandleFunc("/sounds/{sound:[-a-zA-Z]+}", deleteSound(sounds)).Methods("DELETE")
+
 	api.HandleFunc("/tts", ttsPostHandler()).Methods("POST")
 	api.HandleFunc("/tts", ttsGetHandler()).Methods("GET")
 

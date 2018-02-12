@@ -34,7 +34,7 @@ var listCmd = &cobra.Command{
 			}).Error("Failed to contact bell server")
 			return
 		}
-		var sounds sound.Sounds
+		var sounds []sound.Sound
 		json.NewDecoder(resp.Body).Decode(&sounds)
 		if len(sounds) > 0 {
 			fmt.Println("Sounds found")

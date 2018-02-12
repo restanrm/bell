@@ -12,11 +12,16 @@ var cfgFile string
 
 const (
 	// ListPath is the path to list sounds
-	ListPath = "/api/v1/"
+	ListPath = "/api/v1/sounds"
 	// PlayPath is the path to play sounds
 	PlayPath = "/api/v1/play/"
 	// TtsPath is the path used to push content to read
 	TtsPath = "/api/v1/tts"
+	// DeleteSoundPath is the path used to delete sounds from the library
+	DeleteSoundPath = "/api/v1/sounds/"
+
+	// AddSoundPath is the path used to upload new sounds
+	AddSoundPath = "/api/v1/sounds"
 )
 
 // rootCmd represents the base command when called without any subcommands
