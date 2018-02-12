@@ -1,6 +1,6 @@
 build: 
 #	GOOS=linux go build -o app 
-	docker build -t restanrm/bell . 
+	docker build ${OPTS} -t restanrm/bell . 
 #	rm app
 
 run: build
