@@ -3,7 +3,7 @@
     <div class="jumbotron player">
       <div class="container-fluid">
         <div class="row">
-          <div class="col-2" v-for="sound in sounds"><button class="btn btn-primary play-btn" v-on:click="play(sound.name)">{{sound.name}}</button></div>
+          <div class="col-sm-6 col-md-4 col-lg-2" v-for="sound in sounds"><button class="btn btn-primary play-btn" v-on:click="play(sound.name)">{{sound.name}}</button></div>
         </div>
       </div>
     </div>
@@ -14,10 +14,14 @@
   export default {
     name: 'list',
     data () {
+      var basepath = ''
+      if (process.env.NODE_ENV === 'development') {
+        basepath = 'http://localhost:10101'
+      };
       return {
         sounds: [],
-        playURL: '/api/v1/play/',
-        soundsURL: '/api/v1/sounds'
+        playURL: basepath + '/api/v1/play/',
+        soundsURL: basepath + '/api/v1/sounds'
       }
     },
     methods: {
@@ -61,7 +65,7 @@
     margin: 15px 0 !important;
     padding: 15px 0 !important;
     width: 100%;
-    background: #1c88cc;
+		background: #063F63;
   }
 
   .player {

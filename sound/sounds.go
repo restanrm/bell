@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"os"
+	"sort"
 	"sync"
 
 	"github.com/restanrm/bell/player"
@@ -139,5 +140,6 @@ func (s inMemorySounds) GetSounds() []Sound {
 	for _, v := range s.m {
 		out = append(out, v)
 	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
 }

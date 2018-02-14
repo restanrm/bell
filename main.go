@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/restanrm/bell/sound"
+	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
@@ -59,5 +60,5 @@ func main() {
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./front/dist")))
 
 	logrus.Info("Listening on address: ", viper.GetString("listen"))
-	log.Fatal(http.ListenAndServe(viper.GetString("listen"), webLogger(r)))
+	log.Fatal(http.ListenAndServe(viper.GetString("listen"), cors.Default().Handler(webLogger(r))))
 }
