@@ -1,7 +1,7 @@
 {
-  "name": "front",
+  "name": "bell",
   "version": "1.0.0",
-  "description": "front for bell API",
+  "description": "bell for bell API",
   "author": "Adrien RAFFIN <adrien.raffin@sekoia.fr>",
   "private": true,
   "scripts": {
