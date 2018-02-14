@@ -56,7 +56,7 @@ func main() {
 	api.HandleFunc("/tts", ttsGetHandler()).Methods("GET")
 
 	// Delegate all paths to front/dist
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("front/dist")))
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./front/dist")))
 
 	logrus.Info("Listening on address: ", viper.GetString("listen"))
 	log.Fatal(http.ListenAndServe(viper.GetString("listen"), webLogger(r)))
