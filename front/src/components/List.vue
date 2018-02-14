@@ -1,9 +1,9 @@
 <template>
   <div class="list">
-    <div class="jumbotron">
-      <div class="container">
+    <div class="jumbotron player">
+      <div class="container-fluid">
         <div class="row">
-          <div class="col" v-for="sound in sounds"><button class="btn btn-primary" v-on:click="play(sound.name)">{{sound.name}}</button></div>
+          <div class="col-2" v-for="sound in sounds"><button class="btn btn-primary play-btn" v-on:click="play(sound.name)">{{sound.name}}</button></div>
         </div>
       </div>
     </div>
@@ -55,5 +55,16 @@
   
   a {
     color: #35495E;
+  }
+
+  button.play-btn {
+    margin: 15px 0 !important;
+    padding: 15px 0 !important;
+    width: 100%;
+    background: #1c88cc;
+  }
+
+  .player {
+    background: #243447;
   }
 </style>

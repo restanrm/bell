@@ -26,6 +26,7 @@
 <style>
   body {
     margin: 0;
+    background: #141d26;
   }
   
   #app {
