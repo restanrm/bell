@@ -25,7 +25,11 @@ func (mp *MpvPlayer) PlayFilepath(fp string) error {
 }
 
 func (mp *MpvPlayer) play(fp string) error {
-	cmd := exec.Command("mpv", fp)
+	cmd := exec.Command(
+		"mpv",
+		"--audio-normalize-downmix=yes",
+		fp,
+	)
 
 	out, err := cmd.Output()
 	if err != nil {
