@@ -28,6 +28,11 @@ const (
 var rootCmd = &cobra.Command{
 	Use:   "bellctl",
 	Short: "This allow to control a \"bell\" server with simple commands",
+	Long: `You can controal a bell server. To choose your bell server use the env variable BELL_ADDRESS.addCmd
+Example: 
+	export BELL_ADDRESS=http://localhost:10101
+	bellctl list 
+	`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
