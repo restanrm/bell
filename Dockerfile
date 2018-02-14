@@ -23,7 +23,7 @@ WORKDIR /data
 VOLUME /data
 
 COPY --from=builder /go/bin/bell /bell
-COPY --from=builder /bell/front/dist /data/front/dist
+COPY --from=builder /go/src/github.com/restanrm/bell/front/dist /data/front/dist
 COPY store.json /data/store.json
 COPY sounds /data/sounds
 
