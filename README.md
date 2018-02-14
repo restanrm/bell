@@ -1,12 +1,15 @@
 # bell 
 bell is a small api to play sound via an API. 
 
-Endpoint|Method|Description
---|--|--
-/api/v1/ | GET | list registered sound that can be played
-/api/v1/play/{sound} | GET | play a sound
-/api/v1/tts | GET | retrieve an html gui to play text
-/api/v1/tts | POST | send text to play
+| Endpoint               | Method | Description                               |
+| ---------------------- | ------ | ----------------------------------------- |
+| /api/v1/               | GET    | list registered sound that can be played  |
+| /api/v1/play/{sound}   | GET    | play a sound                              |
+| /api/v1/tts            | GET    | retrieve an html gui to play text         |
+| /api/v1/tts            | POST   | send text to play                         |
+| /api/v1/sounds         | GET    | list registered sounds that can be played |
+| /api/v1/sounds         | POST   | add new sound to bell                     |
+| /api/v1/sounds/{sound} | DELETE | remove sound from bell                    |
 
 # dependencies 
 This program needs `mpv` to play sound.
