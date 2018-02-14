@@ -8,8 +8,8 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"time"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/restanrm/bell/player"
 	"github.com/restanrm/bell/sound"
@@ -75,7 +75,8 @@ func addSound(vault sound.Sounder) http.HandlerFunc {
 			return
 		}
 		defer file.Close()
-		soundFilepath := fmt.Sprintf("/tmp/bell-sound-%v.mp3", time.Now().Unix())
+
+		soundFilepath := fmt.Sprintf("/tmp/bell-sound-%v.mp3", uuid.New().String())
 		f, err := os.OpenFile(soundFilepath, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{

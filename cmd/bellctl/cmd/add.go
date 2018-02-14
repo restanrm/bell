@@ -32,7 +32,7 @@ Example of usage:
 			logrus.WithFields(logrus.Fields{
 				"error":          err,
 				"server address": viper.GetString("bell.address"),
-				"method":         "deletecCmd.Run",
+				"method":         "addCmd.Run",
 			}).Error("Failed to build url")
 			return
 		}
