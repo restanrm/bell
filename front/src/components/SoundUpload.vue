@@ -10,13 +10,13 @@
             .col-3
               file-upload.btn.btn-primary(
                 ref="upload",
-                v-model="file",
+                v-model="files",
                 :post-action='uploadPath',
-                @input-file="inputFile",
                 :size=1024 * 1024 * 1,
                 :data="{name:soundName}",
                 name="uploadFile",
                 :multiple=false,
+                @input="updateValue",
                 )
                 i.fa.fa-file
                 span  Choose sound
@@ -28,13 +28,17 @@
                 )
                 i.fa.fa-upload
                 span  Start uploading
-              button.btn.btn-success(
+              button.btn.btn-danger(
                 v-show="$refs.upload && $refs.upload.active", 
                 @click.prevent="$refs.upload.active = false",
                 type="button",
                 )
                 i.fa.fa-times
                 span  Stop upload
+      ul
+        li(v-for="(f, index) in files",:key="f.id")
+          span(v-if="f.error") {{f.error}}
+          span(v-else-if="f.success").alert.alert-success Successfully uploaded content
 </template>
 
 <script>
@@ -56,6 +60,19 @@
       }
     },
     methods: {
+      updateValue (value) {
+        let refresh = true
+        if (this.files) {
+          for (let i = 0; i < this.files.length; i++) {
+            if (this.files[i].success === false) {
+              refresh = false
+            }
+          }
+          if (refresh === true) {
+            window.location.reload()
+          }
+        }
+      }
     }
   }
 </script>
@@ -85,10 +102,16 @@
     margin: 15px 0 !important;
     padding: 15px 0 !important;
     width: 100%;
-		background: #063F63;
+    background: #2686C3;
   }
 
   .player {
     background: #243447;
+  }
+
+  .jumbotron.soundUpload {
+    background: #97999b;
+    padding: 2rem;
+    margin: 0px;
   }
 </style>
