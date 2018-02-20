@@ -3,6 +3,7 @@
     <header>
       <span>Bell player</span>
     </header>
+    <SoundUpload></SoundUpload>
     <List></List>
     <!--
                 <main>
@@ -15,10 +16,13 @@
 
 <script>
   import List from './components/List'
+  import SoundUpload from './components/SoundUpload'
+
   export default {
     name: 'app',
     components: {
-      List
+      List,
+      SoundUpload
     }
   }
 </script>
