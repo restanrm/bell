@@ -5,8 +5,8 @@
         .container
           .row
             .col-6
-              label Filename: 
-              input(type="text",id="inputField")
+              label Name for your sound: 
+              input(type="text",id="inputField",v-model="soundName")
             .col-3
               file-upload.btn.btn-primary(
                 ref="upload",
@@ -14,15 +14,15 @@
                 :post-action='uploadPath',
                 @input-file="inputFile",
                 :size=1024 * 1024 * 1,
-                :data="{filename:'filename'}",
-                :name="uploadFile",
+                :data="{name:soundName}",
+                name="uploadFile",
                 :multiple=false,
                 )
                 i.fa.fa-file
-                span  Upload your sound
+                span  Choose sound
             .col-3
               button.btn.btn-success(
-                v-show="!$refs.upload || !$refs.upload.active", 
+                v-show="!$refs.upload || !$refs.upload.active && soundName!=''", 
                 @click.prevent="$refs.upload.active = true",
                 type="button",
                 )
@@ -51,7 +51,8 @@
       };
       return {
         uploadPath: basepath + '/api/v1/sounds',
-        filename: ''
+        filename: '',
+        soundName: ''
       }
     },
     methods: {
