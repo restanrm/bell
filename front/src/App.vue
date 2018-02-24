@@ -1,23 +1,15 @@
-<template>
-  <div id="app">
-    <header>
-      <span>Bell player</span>
-    </header>
-    <SoundUpload></SoundUpload>
-    <List></List>
-    <!--
-                <main>
-                  <img src="./assets/logo.png" alt="Vue.js PWA">
-                  <router-view></router-view>
-                </main>
-                -->
-  </div>
+<template lang="jade">
+  .app
+    header
+      span Bell
+    List
+    //- SoundUpload
 </template>
 
 <script>
   import List from './components/List'
   import SoundUpload from './components/SoundUpload'
-
+  
   export default {
     name: 'app',
     components: {
@@ -27,14 +19,15 @@
   }
 </script>
 
-<style>
+<style lang="scss">
+  @import "styles/settings.scss";
   body {
     margin: 0;
     background: #141d26;
   }
   
   #app {
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
+    font-family: "Avenir", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
@@ -49,18 +42,17 @@
     margin: 0;
     height: 56px;
     padding: 0 16px 0 24px;
-    background-color: #35495E;
+    background-color: $secondary-light;
     color: #ffffff;
-  }
-  
-  header span {
-    display: block;
-    position: relative;
-    font-size: 20px;
-    line-height: 1;
-    letter-spacing: .02em;
-    font-weight: 400;
-    box-sizing: border-box;
-    padding-top: 16px;
+    span {
+      display: block;
+      position: relative;
+      font-size: 20px;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      font-weight: 400;
+      box-sizing: border-box;
+      padding-top: 16px;
+    }
   }
 </style>
