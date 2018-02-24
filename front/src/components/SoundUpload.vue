@@ -78,40 +78,13 @@
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
-  h1,
-  h2 {
-    font-weight: normal;
-  }
-  
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  li {
-    display: inline-block;
-    margin: 0 10px;
-  }
-  
-  a {
-    color: #35495E;
-  }
-
-  button.play-btn {
-    margin: 15px 0 !important;
-    padding: 15px 0 !important;
-    width: 100%;
-    background: #2686C3;
-  }
-
-  .player {
-    background: #243447;
-  }
+<style lang="scss">
+  @import "../styles/settings.scss";
 
   .jumbotron.soundUpload {
-    background: #97999b;
+    background: $secondary-lighter;
     padding: 2rem;
     margin: 0px;
   }
+
 </style>

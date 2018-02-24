@@ -41,34 +41,31 @@
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
-<style>
-  h1,
-  h2 {
-    font-weight: normal;
+<style lang="scss">
+  @import "../styles/settings.scss";
+
+  .player {
+    background: $primary-darker;
   }
   
   ul {
     list-style-type: none;
     padding: 0;
+    li {
+      display: inline-block;
+      margin: 0 10px;
+    }
   }
   
-  li {
-    display: inline-block;
-    margin: 0 10px;
-  }
-  
-  a {
-    color: #35495E;
-  }
-
   button.play-btn {
     margin: 15px 0 !important;
     padding: 15px 0 !important;
     width: 100%;
-		background: #063F63;
+		background: $primary-dark;
+    border-color: $primary-light;
+    &:hover{
+      background: $secondary-light;
+    }
   }
 
-  .player {
-    background: #243447;
-  }
 </style>
