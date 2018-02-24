@@ -11,9 +11,10 @@ import (
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "delete allows to remove sounds from library",
-	Long:  `This endpoint allows to remove sounds from library. To reset library to base just reboot the service.`,
+	Use:     "delete",
+	Aliases: []string{`rm`, `del`},
+	Short:   "delete allows to remove sounds from library",
+	Long:    `This endpoint allows to remove sounds from library. To reset library to base just reboot the service.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			logrus.Error("Failed to play nothing as a sound")

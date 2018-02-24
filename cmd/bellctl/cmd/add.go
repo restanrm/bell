@@ -15,13 +15,12 @@ import (
 
 // addCmd represents the add command
 var addCmd = &cobra.Command{
-	Use:   "add",
-	Short: "Add new sounds to library",
-	Long: `Allows to add new sounds to library. Client endpoint not implemented yet
-	
-Example of usage: 
-
-	bellctl add --name toto --file ./file.mp3
+	Use:     "add",
+	Aliases: []string{`upload`},
+	Short:   "Add new sounds to library",
+	Long:    `Allows to add new sounds to library. Client endpoint not implemented yet`,
+	Example: `
+  bellctl add --name toto --file ./file.mp3
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		soundName := cmd.Flag("name").Value.String()

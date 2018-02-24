@@ -14,12 +14,10 @@ import (
 var sayCmd = &cobra.Command{
 	Use:   "say",
 	Short: "say target use tts to say what you wrote",
-	Long: `say use a string argument to play sound to your bell server.append
-
-	ex:
-		bellctl say hello world
-		bellctl say "Why does the skeleton dances alone ? Because he has nobody."
-	
+	Long:  `say use a string argument to play sound to your bell server.append`,
+	Example: ` 
+  bellctl say hello world
+  bellctl say "Why does the skeleton dances alone ? Because he has nobody."
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var text string
