@@ -14,9 +14,10 @@ import (
 
 // listCmd represents the list command
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List available sounds to play",
-	Long:  ``,
+	Use:     "list",
+	Short:   "List available sounds to play",
+	Long:    ``,
+	Aliases: []string{`ls`},
 	Run: func(cmd *cobra.Command, args []string) {
 		address, err := url.Parse(viper.GetString("bell.address") + ListPath)
 		if err != nil {
