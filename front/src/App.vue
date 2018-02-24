@@ -3,7 +3,7 @@
     header
       span Bell
     List
-    //- SoundUpload
+    SoundUpload
 </template>
 
 <script>

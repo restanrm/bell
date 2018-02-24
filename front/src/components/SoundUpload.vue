@@ -82,9 +82,21 @@
   @import "../styles/settings.scss";
 
   .jumbotron.soundUpload {
-    background: $secondary-lighter;
+    background: $secondary-light;
     padding: 2rem;
     margin: 0px;
+  }
+
+  .btn-primary {
+    background: $primary;
+    border-color: $primary-dark;
+    &:hover {
+      background: $ternary-light;
+    }
+  }
+
+  label {
+    color: white;
   }
 
 </style>

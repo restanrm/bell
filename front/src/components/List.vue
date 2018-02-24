@@ -46,6 +46,7 @@
 
   .player {
     background: $primary-darker;
+    margin: 0;
   }
   
   ul {
