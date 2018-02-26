@@ -1,13 +1,13 @@
-<template>
-  <div class="list">
-    <div class="jumbotron player">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-sm-6 col-md-4 col-lg-2" v-for="sound in sounds"><button class="btn btn-primary play-btn" v-on:click="play(sound.name)">{{sound.name}}</button></div>
-        </div>
-      </div>
-    </div>
-  </div>
+<template lang="jade">
+  .list
+    .jumbotron.player
+      .container-fluid
+        .row
+          .col-4
+          input.col-4(type="text",v-model="search",placeholder="search sound")
+        .row
+          .col-sm-6.col-md-4.col-lg-2(v-for="sound in filteredSounds")
+            button.btn.btn-primary.play-btn(v-on:click="play(sound.name)"){{sound.name}}
 </template>
 
 <script>
@@ -19,6 +19,7 @@
         basepath = 'http://localhost:10101'
       };
       return {
+        search: '',
         sounds: [],
         playURL: basepath + '/api/v1/play/',
         soundsURL: basepath + '/api/v1/sounds'
@@ -31,6 +32,13 @@
       updateSounds: function () {
         this.$http.get(this.soundsURL).then(response => {
           this.sounds = response.data
+        })
+      }
+    },
+    computed: {
+      filteredSounds: function () {
+        return this.sounds.filter(sound => {
+          return sound.name.toLowerCase().includes(this.search.toLowerCase())
         })
       }
     },
