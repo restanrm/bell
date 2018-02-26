@@ -2,20 +2,13 @@
   .app
     header
       span Bell
-    List
-    SoundUpload
+    router-view
 </template>
 
 <script>
-  import List from './components/List'
-  import SoundUpload from './components/SoundUpload'
   
   export default {
-    name: 'app',
-    components: {
-      List,
-      SoundUpload
-    }
+    name: 'app'
   }
 </script>
 
