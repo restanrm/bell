@@ -1,21 +1,26 @@
 <template lang="jade">
   .app
-    header
-      span Bell
-    List
-    SoundUpload
+    nav.navbar.navbar-toggleable-md
+      button.navbar-toggler.custom-toggler(type="button",
+        data-toggle="collapse",
+        data-target="#navbarSupportedContent",
+        aria-controls="navbarSupportedContent",
+        aria-expanded="false",
+        aria-label="Toggle navigation",
+        )
+        span.custom-toggler
+          i.fa.fa-bars.white
+      a.navbar-brand(href="#") Bell
+      .collapse.navbar-collapse#navbarSupportedContent
+        router-link.nav-item.nav-link.active(to="/") List
+        router-link.nav-item.nav-link(to="/upload") Upload
+    router-view
 </template>
 
 <script>
-  import List from './components/List'
-  import SoundUpload from './components/SoundUpload'
   
   export default {
-    name: 'app',
-    components: {
-      List,
-      SoundUpload
-    }
+    name: 'app'
   }
 </script>
 
@@ -32,7 +37,21 @@
     -moz-osx-font-smoothing: grayscale;
     color: #2c3e50;
   }
-  
+
+  .navbar, .navbar-brand {
+    background: $secondary-light !important;
+    color: white;
+    a, .navbar-toggler-icon {
+      color: white;
+    }
+  }
+
+  .custom-toggler{
+    border-color: white;
+    // background: white;
+    color: white;
+  }
+
   main {
     text-align: center;
     margin-top: 40px;
