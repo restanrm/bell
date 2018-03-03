@@ -143,6 +143,32 @@ func listSounds(vault sound.Sounder) http.HandlerFunc {
 	}
 }
 
+func getSound(vault sound.Sounder) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		soundName := vars["sound"]
+		if soundName == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			logrus.WithFields(logrus.Fields{}).Error("Missing sound name from query")
+			fmt.Fprintf(w, "Missing sound name from query")
+			return
+		}
+		content, err := vault.GetSound(soundName)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			logrus.WithFields(logrus.Fields{"soundName": soundName}).Error("Couldn't find sound name from query")
+			http.Error(w, "Failed to find the requested file", http.StatusNotFound)
+			return
+		}
+		w.Header().Add("ContentType", "audio/mpeg3")
+		_, err = w.Write(content)
+		if err != nil {
+			logrus.WithField("err", err).Error("Couldn' write file content the responseWriter")
+			return
+		}
+	}
+}
+
 // part for TextToSpeech
 
 func ttsPostHandler() http.HandlerFunc {

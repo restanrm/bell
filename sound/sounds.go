@@ -18,6 +18,7 @@ type Sounder interface {
 	UpdateSound(sound Sound) error
 	DeleteSound(name string) error
 	PlaySound(name string, player player.Player) error
+	GetSound(name string) ([]byte, error)
 	GetSounds() []Sound
 }
 
@@ -142,4 +143,14 @@ func (s inMemorySounds) GetSounds() []Sound {
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
 	return out
+}
+
+func (s inMemorySounds) GetSound(name string) (ret []byte, err error) {
+	s.RLock()
+	defer s.RUnlock()
+	ss, ok := s.m[name]
+	if !ok {
+		return nil, ErrSoundNotFound
+	}
+	return ioutil.ReadFile(ss.filePath)
 }
