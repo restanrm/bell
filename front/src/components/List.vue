@@ -82,19 +82,18 @@
     margin: 15px 0;
     .toggler {
       padding: 0;
-    }
-    .toggle-handle {
-      background: white;
-    }
-    .toggle-on {
-      background: $primary;
-    }
-    .toggle-off {
-      background: $secondary-light;
-      color: white;
-    }
-    .toggle-handle {
-      border-radius: 0px;
+
+      .toggle-handle {
+        background: white;
+        border-radius: 0px;
+      }
+      .toggle-on {
+        background: $primary;
+      }
+      .toggle-off {
+        background: $secondary-light;
+        color: white;
+      }
     }
   }
 
