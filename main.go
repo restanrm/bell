@@ -52,6 +52,7 @@ func main() {
 	api.HandleFunc("/sounds", addSound(sounds)).Methods("POST")
 	api.HandleFunc("/sounds", listSounds(sounds)).Methods("GET")
 	api.HandleFunc("/sounds/{sound:[-a-zA-Z]+}", deleteSound(sounds)).Methods("DELETE")
+	api.HandleFunc("/sounds/{sound:[-a-zA-Z]+}", getSound(sounds)).Methods("GET")
 
 	api.HandleFunc("/tts", ttsPostHandler()).Methods("POST")
 	api.HandleFunc("/tts", ttsGetHandler()).Methods("GET")

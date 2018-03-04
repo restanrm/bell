@@ -2,17 +2,30 @@
   .list
     .jumbotron.player
       .container-fluid
-        .row
-          .col-4
-          input.col-4(type="text",v-model="search",placeholder="search sound")
+        audio(
+          :src="soundPath",
+          id="player",
+          autoplay,
+        )
+        .row.searcher
+          .toggler.col-sm-12.col-md-2.col-lg-2
+            bootstrap-toggle(
+              v-model="playOnServer",
+              :options="{on: '<i class=\"fa fa-play\"></i> Server', off:'<i class=\"fa fa-play\"></i> Locally'}",
+            )
+          input.col-sm-12.offset-sm-0.col-md-6.offset-md-4.col-lg-4.offset-lg-6(type="text",v-model="search",placeholder="search sound")
         .row
           .col-sm-6.col-md-4.col-lg-2(v-for="sound in filteredSounds")
-            button.btn.btn-primary.play-btn(v-on:click="play(sound.name)"){{sound.name}}
+            button.btn.btn-primary.play-btn(
+              v-on:click="play(sound.name)",
+              ){{sound.name}}
 </template>
 
 <script>
+  import BootstrapToggle from 'vue-bootstrap-toggle'
   export default {
     name: 'list',
+    components: {BootstrapToggle},
     data () {
       var basepath = ''
       if (process.env.NODE_ENV === 'development') {
@@ -21,13 +34,21 @@
       return {
         search: '',
         sounds: [],
+        playOnServer: true,
+        soundPath: '',
+        playLocallyURL: basepath + '/api/v1/sounds/',
         playURL: basepath + '/api/v1/play/',
         soundsURL: basepath + '/api/v1/sounds'
       }
     },
     methods: {
       play: function (sound) {
-        this.$http.get(this.playURL + sound)
+        console.log(this.playOnServer)
+        if (this.playOnServer) {
+          this.$http.get(this.playURL + sound)
+        } else {
+          this.soundPath = this.playLocallyURL + sound
+        }
       },
       updateSounds: function () {
         this.$http.get(this.soundsURL).then(response => {
@@ -56,6 +77,34 @@
     background: $primary-darker;
     margin: 0;
   }
+
+  .searcher {
+    margin: 15px 0;
+    .toggler {
+      padding: 0;
+    }
+    .toggle-handle {
+      background: white;
+    }
+    .toggle-on {
+      background: $primary;
+    }
+    .toggle-off {
+      background: $secondary-light;
+      color: white;
+    }
+    .toggle-handle {
+      border-radius: 0px;
+    }
+  }
+
+  .btn-primary {
+    border-color: $primary-light;
+    &:hover{
+      background-color: $primary;
+      border-color: $primary-light;
+    }
+  }
   
   ul {
     list-style-type: none;
@@ -74,6 +123,7 @@
     border-color: $primary-light;
     &:hover{
       background: $secondary-light;
+      border-color: $primary-light;
     }
   }
 
