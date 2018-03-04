@@ -5,7 +5,6 @@
         audio(
           :src="soundPath",
           id="player",
-          autoplay,
         )
         .row.searcher
           .toggler.col-sm-12.col-md-2.col-lg-2
@@ -43,11 +42,11 @@
     },
     methods: {
       play: function (sound) {
-        console.log(this.playOnServer)
         if (this.playOnServer) {
           this.$http.get(this.playURL + sound)
         } else {
           this.soundPath = this.playLocallyURL + sound
+          document.getElementById('player').play()
         }
       },
       updateSounds: function () {
