@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -22,6 +24,8 @@ const (
 
 	// AddSoundPath is the path used to upload new sounds
 	AddSoundPath = "/api/v1/sounds"
+	// GetSoundPath is the path used to retrieve sound content
+	GetSoundPath = "/api/v1/sounds/"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -52,4 +56,9 @@ func init() {
 func initConfig() {
 	viper.BindEnv("bell.address", "BELL_ADDRESS")
 	viper.SetDefault("bell.address", "http://localhost:10101")
+	viper.BindEnv("verbose", "VERBOSE")
+	viper.SetDefault("verbose", false)
+	if viper.GetBool("verbose") {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
 }
