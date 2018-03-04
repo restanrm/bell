@@ -4,7 +4,7 @@
       .container-fluid
         audio(
           :src="soundPath",
-          id="player",
+          ref="player",
         )
         .row.searcher
           .toggler.col-sm-12.col-md-2.col-lg-2
@@ -46,7 +46,7 @@
           this.$http.get(this.playURL + sound)
         } else {
           this.soundPath = this.playLocallyURL + sound
-          document.getElementById('player').play()
+          this.$refs.player.play()
         }
       },
       updateSounds: function () {
@@ -63,6 +63,7 @@
       }
     },
     created: function () {
+      this.player = document.getElementById('player')
       this.updateSounds()
     }
   }
