@@ -1,3 +1,4 @@
+//go:generate statik -src=./front/dist
 package main
 
 import (
@@ -7,7 +8,9 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/rakyll/statik/fs"
 	"github.com/restanrm/bell/sound"
+	_ "github.com/restanrm/bell/statik"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -57,8 +60,12 @@ func main() {
 	api.HandleFunc("/tts", ttsPostHandler()).Methods("POST")
 	api.HandleFunc("/tts", ttsGetHandler()).Methods("GET")
 
+	statikFS, err := fs.New()
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Delegate all paths to front/dist
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./front/dist")))
+	r.PathPrefix("/").Handler(http.FileServer(statikFS))
 
 	logrus.Info("Listening on address: ", viper.GetString("listen"))
 	log.Fatal(http.ListenAndServe(viper.GetString("listen"), cors.Default().Handler(webLogger(r))))
