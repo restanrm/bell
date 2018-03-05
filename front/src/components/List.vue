@@ -81,8 +81,18 @@
 
   .searcher {
     margin: 15px 0;
+    display: flex;
+    align-items: center;
     .toggler {
+      height: 34px;
       padding: 0;
+      display: block;
+      margin: 15px 0;
+
+      .btn {
+        max-height: 34px;
+        border: none;
+      }
 
       .toggle-handle {
         background: white;
@@ -105,7 +115,7 @@
       border-color: $primary-light;
     }
   }
-  
+
   ul {
     list-style-type: none;
     padding: 0;
@@ -114,7 +124,7 @@
       margin: 0 10px;
     }
   }
-  
+
   button.play-btn {
     margin: 15px 0 !important;
     padding: 15px 0 !important;
