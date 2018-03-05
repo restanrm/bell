@@ -84,7 +84,7 @@
     display: flex;
     align-items: center;
     .toggler {
-      height: 34px !important;
+      height: 34px;
       padding: 0;
       display: block;
       margin: 15px 0;
