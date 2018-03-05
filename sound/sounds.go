@@ -3,6 +3,7 @@ package sound
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -13,6 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Sounder is the interface to render sound service
 type Sounder interface {
 	CreateSound(name, filepath string) error
 	UpdateSound(sound Sound) error
@@ -22,6 +24,7 @@ type Sounder interface {
 	GetSounds() []Sound
 }
 
+// Sound is the struct to represent a sound
 type Sound struct {
 	Name     string `json:"name"`
 	filePath string `json:"file_name"`
@@ -37,25 +40,35 @@ var (
 	ErrSoundNotFound     = errors.New("Sound not found")
 )
 
-// Load some sounds into collection
-func Load(file string) Sounder {
-	// func (ss *Sounds) Load(file string) {
-	fd, err := os.Open(file)
+// New create a new instance of a sounder
+func New(filepath string) *inMemorySounds {
+	ims := &inMemorySounds{
+		m: make(map[string]Sound),
+	}
+	ss, err := load(filepath)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
-			"error":    err,
-			"filepath": file,
-		}).Error("Failed to open store for sounds")
-		os.Exit(-1)
+			"error": err,
+		}).Warn("An error happened when loading sounds database")
+	} else {
+		ims.Lock()
+		defer ims.Unlock()
+		for _, sound := range ss {
+			ims.m[sound.Name] = sound
+		}
+	}
+	return ims
+}
+
+func load(filepath string) ([]Sound, error) {
+	fd, err := os.Open(filepath)
+	if err != nil {
+		return nil, err
 	}
 
 	data, err := ioutil.ReadAll(fd)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error":    err,
-			"filepath": file,
-		}).Error("Failed to read all content of file")
-		os.Exit(-1)
+		return nil, err
 	}
 
 	type ssto struct {
@@ -66,23 +79,27 @@ func Load(file string) Sounder {
 	var ss []ssto
 	err = json.Unmarshal(data, &ss)
 	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err,
-		}).Error("Failed to unmarshal json data to Sounds type")
-		return nil
+		return nil, fmt.Errorf("Failed to unmarshal json data to Sounds type. err: %v", err)
 	}
 
+	var output []Sound
+	for _, s := range ss {
+		output = append(output, Sound{
+			Name:     s.Name,
+			filePath: viper.GetString("soundDir") + "/" + s.FileName,
+		})
+	}
+	return output, nil
+
+}
+
+// Load some sounds into collection
+func Load(file string) Sounder {
 	sounds := &inMemorySounds{
 		m: make(map[string]Sound),
 	}
 	sounds.Lock()
 	defer sounds.Unlock()
-	for _, s := range ss {
-		sounds.m[s.Name] = Sound{
-			Name:     s.Name,
-			filePath: viper.GetString("soundDir") + "/" + s.FileName,
-		}
-	}
 
 	return sounds
 }

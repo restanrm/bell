@@ -1,4 +1,4 @@
-//go:generate statik -src=./front/dist
+//go:generate statik -src=./front/dist -f
 package main
 
 import (
@@ -45,7 +45,7 @@ func main() {
 		exitIfNotSetted("polly.secretKey")
 	}
 
-	sounds := sound.Load(viper.GetString("storefile"))
+	sounds := sound.New(viper.GetString("storefile"))
 
 	r := mux.NewRouter()
 	api := r.PathPrefix("/api/v1").Subrouter()
