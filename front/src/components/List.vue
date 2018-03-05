@@ -5,6 +5,7 @@
         audio(
           :src="soundPath",
           ref="player",
+          autoplay,
         )
         .row.searcher
           .toggler.col-sm-12.col-md-2.col-lg-2
