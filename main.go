@@ -29,6 +29,8 @@ func init() {
 	viper.SetDefault("flite", true)
 	viper.BindEnv("polly.voice", "POLLY_VOICE")
 	viper.SetDefault("polly.voice", "Amy")
+	viper.BindEnv("embed.front", "EMBED_FRONT")
+	viper.SetDefault("embed.front", true)
 }
 
 func exitIfNotSetted(key string) {
@@ -65,7 +67,11 @@ func main() {
 		log.Fatal(err)
 	}
 	// Delegate all paths to front/dist
-	r.PathPrefix("/").Handler(http.FileServer(statikFS))
+	if viper.GetBool("embed.front") {
+		r.PathPrefix("/").Handler(http.FileServer(statikFS))
+	} else {
+		r.PathPrefix("/").Handler(http.FileServer(http.Dir("front/dist")))
+	}
 
 	logrus.Info("Listening on address: ", viper.GetString("listen"))
 	log.Fatal(http.ListenAndServe(viper.GetString("listen"), cors.Default().Handler(webLogger(r))))
