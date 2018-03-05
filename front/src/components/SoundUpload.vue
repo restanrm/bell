@@ -4,7 +4,7 @@
       .form-group.row
         label.col-md-2.col-form-label.vert-spacer(for="inputField") Sound name
         input.col-md-5.vert-spacer(type="text",id="inputField",v-model="soundName")
-        file-upload.btn.btn-primary.col-md-4.spacer(
+        file-upload.btn.btn-primary.col-md-4.spacer.soundUploadBtn(
           ref="upload",
           v-model="files",
           :post-action='uploadPath',
@@ -18,14 +18,14 @@
           span  Choose sound
       .row(v-show="soundName!=''")
         .col-md-4
-        button.btn.btn-success.col-md-4(
+        button.btn.btn-success.col-md-4.soundUploadBtn(
           v-if="!$refs.upload || !$refs.upload.active && soundName!=''", 
           @click.prevent="$refs.upload.active = true",
           type="button",
           )
           i.fa.fa-upload
           span  Start uploading
-        button.btn.btn-danger.col-md-4(
+        button.btn.btn-danger.col-md-4.soundUploadBtn(
           v-else="$refs.upload && $refs.upload.active", 
           @click.prevent="$refs.upload.active = false",
           type="button",
@@ -93,7 +93,7 @@
     margin: 1.5em 0;
   }
 
-  .btn {
+  .soundUploadBtn {
     margin: 15px;
     padding: 15px;
   }
