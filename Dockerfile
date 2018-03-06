@@ -15,7 +15,7 @@ RUN cd /go/src/github.com/restanrm/bell/front && \
 
 RUN cd /go/src/github.com/restanrm/bell && \
     /go/bin/statik -src=./front/dist && \
-    export PATH=$PATH:/usr/local/go/bin && export GOPATH=/go && \
+    export PATH=$PATH:/usr/local/go/bin:/go/bin && export GOPATH=/go && \
     go generate && \
     go install 
 
