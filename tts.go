@@ -1,4 +1,4 @@
-package main
+package bell
 
 import (
 	"crypto/md5"
@@ -7,9 +7,9 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/restanrm/bell/player"
 	"github.com/restanrm/golang-tts"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 

@@ -9,8 +9,8 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/restanrm/bell/player"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 

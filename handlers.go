@@ -1,4 +1,4 @@
-package main
+package bell
 
 import (
 	"encoding/json"
@@ -10,22 +10,22 @@ import (
 	"os"
 	"regexp"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/restanrm/bell/player"
 	"github.com/restanrm/bell/sound"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
-func midLogger(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Print("client=", r.RemoteAddr, " URL=", r.URL.Path)
-		fn(w, r)
-	}
-}
+// func midLogger(fn http.HandlerFunc) http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		log.Print("client=", r.RemoteAddr, " URL=", r.URL.Path)
+// 		fn(w, r)
+// 	}
+// }
 
-func webLogger(h http.Handler) http.Handler {
+func WebLogger(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 		log.Print("client=", r.RemoteAddr, " URL=", r.URL.Path, " Method=", r.Method, " Params=", r.PostForm)
@@ -35,8 +35,8 @@ func webLogger(h http.Handler) http.Handler {
 
 var rxSound = regexp.MustCompile(`^[-a-zA-Z]+$`)
 
-// soundPlayer allow to play a sound from sounder service
-func soundPlayer(vault sound.Sounder) http.HandlerFunc {
+// SoundPlayer allow to play a sound from sounder service
+func SoundPlayer(vault sound.Sounder) http.HandlerFunc {
 	m := new(player.MpvPlayer)
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -62,8 +62,8 @@ func soundPlayer(vault sound.Sounder) http.HandlerFunc {
 	}
 }
 
-// addNewSound to Sounder service
-func addSound(vault sound.Sounder) http.HandlerFunc {
+// AddNewSound to Sounder service
+func AddSound(vault sound.Sounder) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// this function add new sound file on sound dir path
 		r.ParseMultipartForm(int64(1 * 1024 * 1024))
@@ -112,8 +112,8 @@ func addSound(vault sound.Sounder) http.HandlerFunc {
 	}
 }
 
-// deleteSound allows to delete sound from library
-func deleteSound(vault sound.Sounder) http.HandlerFunc {
+// DeleteSound allows to delete sound from library
+func DeleteSound(vault sound.Sounder) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		soundName := vars["sound"]
@@ -139,8 +139,8 @@ func deleteSound(vault sound.Sounder) http.HandlerFunc {
 	}
 }
 
-// listSounds function
-func listSounds(vault sound.Sounder) http.HandlerFunc {
+// ListSounds function
+func ListSounds(vault sound.Sounder) http.HandlerFunc {
 	// this function list all currently available sounds
 	return func(w http.ResponseWriter, r *http.Request) {
 		sounds := vault.GetSounds()
@@ -167,7 +167,8 @@ func listSounds(vault sound.Sounder) http.HandlerFunc {
 	}
 }
 
-func getSound(vault sound.Sounder) http.HandlerFunc {
+// GetSound allows to retrieve asound from the server
+func GetSound(vault sound.Sounder) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		soundName := vars["sound"]
@@ -202,7 +203,8 @@ func getSound(vault sound.Sounder) http.HandlerFunc {
 
 // part for TextToSpeech
 
-func ttsPostHandler() http.HandlerFunc {
+// TtsPostHandler handle request to play tts
+func TtsPostHandler() http.HandlerFunc {
 	var tts = NewTTS(
 		viper.GetBool("flite"),
 		viper.GetString("polly.accessKey"),
@@ -224,7 +226,8 @@ func ttsPostHandler() http.HandlerFunc {
 	}
 }
 
-func ttsGetHandler() http.HandlerFunc {
+// TtsGetHandler handle request for TextToSpeech
+func TtsGetHandler() http.HandlerFunc {
 	pattern := `
 <!doctype html>
 	<head></head>
