@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -73,8 +74,10 @@ var addCmd = &cobra.Command{
 		defer resp.Body.Close()
 
 		if resp.StatusCode > 299 {
+			content, _ := ioutil.ReadAll(resp.Body)
 			logrus.WithFields(logrus.Fields{
 				"status_code": resp.StatusCode,
+				"body":        string(content),
 			}).Info("Failed to add new sound to bell server")
 			return
 		}

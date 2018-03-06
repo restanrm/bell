@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -32,12 +33,21 @@ func webLogger(h http.Handler) http.Handler {
 	})
 }
 
+var rxSound = regexp.MustCompile(`^[-a-zA-Z]+$`)
+
 // soundPlayer allow to play a sound from sounder service
 func soundPlayer(vault sound.Sounder) http.HandlerFunc {
 	m := new(player.MpvPlayer)
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		sound := vars["sound"]
+		// validate sound name to regex
+		if !rxSound.MatchString(sound) {
+			w.WriteHeader(http.StatusBadRequest)
+			logrus.WithFields(logrus.Fields{"soundname": sound}).Warn("Client made a request with wrong input file name. It doesn't match the regexp")
+			fmt.Fprintf(w, "Bad sound name. It doesn't match the regex '^[-a-ZA-Z]+$'")
+			return
+		}
 		err := vault.PlaySound(sound, m)
 		if err != nil {
 			w.WriteHeader(http.StatusNotFound)
@@ -62,6 +72,13 @@ func addSound(vault sound.Sounder) http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			logrus.WithFields(logrus.Fields{}).Error("Missing \"name\" field")
 			fmt.Fprintf(w, "Missing \"name\" field")
+			return
+		}
+		// validate sound name to regex
+		if !rxSound.MatchString(soundName) {
+			w.WriteHeader(http.StatusBadRequest)
+			logrus.WithFields(logrus.Fields{"soundname": soundName}).Warn("Client made a request with wrong input file name. It doesn't match the regexp")
+			fmt.Fprintf(w, "Bad sound name. It doesn't match the regex '^[-a-ZA-Z]+$'")
 			return
 		}
 
@@ -104,6 +121,13 @@ func deleteSound(vault sound.Sounder) http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			logrus.WithFields(logrus.Fields{}).Error("Missing sound name from query")
 			fmt.Fprintf(w, "Missing sound name from query")
+			return
+		}
+		// validate sound name to regex
+		if !rxSound.MatchString(soundName) {
+			w.WriteHeader(http.StatusBadRequest)
+			logrus.WithFields(logrus.Fields{"soundname": soundName}).Warn("Client made a request with wrong input file name. It doesn't match the regexp")
+			fmt.Fprintf(w, "Bad sound name. It doesn't match the regex '^[-a-ZA-Z]+$'")
 			return
 		}
 		err := vault.DeleteSound(soundName)
@@ -151,6 +175,13 @@ func getSound(vault sound.Sounder) http.HandlerFunc {
 			w.WriteHeader(http.StatusBadRequest)
 			logrus.WithFields(logrus.Fields{}).Error("Missing sound name from query")
 			fmt.Fprintf(w, "Missing sound name from query")
+			return
+		}
+		// validate sound name to regex
+		if !rxSound.MatchString(soundName) {
+			w.WriteHeader(http.StatusBadRequest)
+			logrus.WithFields(logrus.Fields{"soundname": soundName}).Warn("Client made a request with wrong input file name. It doesn't match the regexp")
+			fmt.Fprintf(w, "Bad sound name. It doesn't match the regex '^[-a-ZA-Z]+$'")
 			return
 		}
 		content, err := vault.GetSound(soundName)
