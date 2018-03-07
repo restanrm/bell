@@ -22,6 +22,7 @@ func (l *loggingSound) CreateSound(name, filepath string) error {
 	defer func(begin time.Time) {
 		logrus.WithFields(logrus.Fields{
 			"method":   "CreateSound",
+			"service":  "sound",
 			"name":     name,
 			"filepath": filepath,
 			"took":     time.Since(begin),
@@ -33,9 +34,10 @@ func (l *loggingSound) CreateSound(name, filepath string) error {
 func (l *loggingSound) UpdateSound(sound Sound) error {
 	defer func(begin time.Time) {
 		logrus.WithFields(logrus.Fields{
-			"method": "UpdateSound",
-			"sound":  sound,
-			"took":   time.Since(begin),
+			"method":  "UpdateSound",
+			"service": "sound",
+			"sound":   sound,
+			"took":    time.Since(begin),
 		}).Info("")
 	}(time.Now())
 	return l.Sounder.UpdateSound(sound)
@@ -44,9 +46,10 @@ func (l *loggingSound) UpdateSound(sound Sound) error {
 func (l *loggingSound) DeleteSound(name string) error {
 	defer func(begin time.Time) {
 		logrus.WithFields(logrus.Fields{
-			"method": "DeleteSound",
-			"name":   name,
-			"took":   time.Since(begin),
+			"method":  "DeleteSound",
+			"service": "sound",
+			"name":    name,
+			"took":    time.Since(begin),
 		}).Info("")
 	}(time.Now())
 	return l.Sounder.DeleteSound(name)
@@ -55,9 +58,10 @@ func (l *loggingSound) DeleteSound(name string) error {
 func (l *loggingSound) PlaySound(name string, player player.Player) error {
 	defer func(begin time.Time) {
 		logrus.WithFields(logrus.Fields{
-			"method": "PlaySound",
-			"name":   name,
-			"took":   time.Since(begin),
+			"method":  "PlaySound",
+			"service": "sound",
+			"name":    name,
+			"took":    time.Since(begin),
 		}).Info("")
 	}(time.Now())
 	return l.Sounder.PlaySound(name, player)
@@ -66,9 +70,10 @@ func (l *loggingSound) PlaySound(name string, player player.Player) error {
 func (l *loggingSound) GetSound(name string) ([]byte, error) {
 	defer func(begin time.Time) {
 		logrus.WithFields(logrus.Fields{
-			"method": "GetSound",
-			"name":   name,
-			"took":   time.Since(begin),
+			"method":  "GetSound",
+			"service": "sound",
+			"name":    name,
+			"took":    time.Since(begin),
 		}).Info("")
 	}(time.Now())
 	return l.Sounder.GetSound(name)
@@ -77,8 +82,9 @@ func (l *loggingSound) GetSound(name string) ([]byte, error) {
 func (l *loggingSound) GetSounds() []Sound {
 	defer func(begin time.Time) {
 		logrus.WithFields(logrus.Fields{
-			"method": "GetSounds",
-			"took":   time.Since(begin),
+			"method":  "GetSounds",
+			"service": "sound",
+			"took":    time.Since(begin),
 		}).Info("")
 	}(time.Now())
 	return l.Sounder.GetSounds()

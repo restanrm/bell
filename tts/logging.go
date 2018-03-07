@@ -1,0 +1,29 @@
+package tts
+
+import (
+	"time"
+
+	"github.com/restanrm/bell/player"
+	"github.com/sirupsen/logrus"
+)
+
+type loggingService struct {
+	Sayer
+}
+
+// NewLoggingService returns a new logging service to log calls to say method
+func NewLoggingService(s Sayer) Sayer {
+	return &loggingService{s}
+}
+
+func (l *loggingService) Say(text string, p player.Player) error {
+	defer func(begin time.Time) {
+		logrus.WithFields(logrus.Fields{
+			"service": "tts",
+			"methods": "Say",
+			"text":    text,
+			"took":    time.Since(begin),
+		}).Info("")
+	}(time.Now())
+	return l.Sayer.Say(text, p)
+}

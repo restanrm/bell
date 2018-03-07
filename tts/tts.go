@@ -18,9 +18,11 @@ type tts struct {
 	flite bool
 }
 
+var _ Sayer = &tts{}
+
 // Sayer is the interface to transform text to sound
 type Sayer interface {
-	Say(string, player.Player)
+	Say(string, player.Player) error
 }
 
 // NewTTS is the function that returns a *tts object. This object implement the

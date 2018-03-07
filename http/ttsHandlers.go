@@ -12,11 +12,13 @@ import (
 
 // TtsPostHandler handle request to play tts
 func TtsPostHandler() http.HandlerFunc {
-	var tts = tts.NewTTS(
+	var t tts.Sayer
+	t = tts.NewTTS(
 		viper.GetBool("flite"),
 		viper.GetString("polly.accessKey"),
 		viper.GetString("polly.secretKey"),
 	)
+	t = tts.NewLoggingService(t)
 	var m = &player.MpvPlayer{}
 	return func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
@@ -29,7 +31,7 @@ func TtsPostHandler() http.HandlerFunc {
 		if len(texts) >= 1 {
 			text = texts[0]
 		}
-		tts.Say(text, m)
+		t.Say(text, m)
 	}
 }
 
