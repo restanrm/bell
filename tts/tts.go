@@ -1,4 +1,4 @@
-package bell
+package tts
 
 import (
 	"crypto/md5"
@@ -7,9 +7,9 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/restanrm/bell/player"
 	"github.com/restanrm/golang-tts"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -18,10 +18,13 @@ type tts struct {
 	flite bool
 }
 
+// Sayer is the interface to transform text to sound
 type Sayer interface {
-	Say(string)
+	Say(string, player.Player)
 }
 
+// NewTTS is the function that returns a *tts object. This object implement the
+// Sayer interface
 func NewTTS(flite bool, accessKey, secretKey string) *tts {
 	polly := golang_tts.New(accessKey, secretKey)
 	polly.Format(golang_tts.MP3)

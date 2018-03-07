@@ -1,3 +1,5 @@
+// Package sound describe what a sound service is and propose an
+// inMemory implematation of such service
 package sound
 
 import (
@@ -9,8 +11,8 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/restanrm/bell/player"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 

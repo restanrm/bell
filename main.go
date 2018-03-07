@@ -1,6 +1,6 @@
+//go:generate statik -src=./front/dist -f
 package bell
 
-// //go:generate statik -src=./front/dist -f
 // package main
 
 // import (

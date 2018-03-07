@@ -20,13 +20,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
-	"github.com/restanrm/bell"
+	localHttp "github.com/restanrm/bell/http"
 	"github.com/restanrm/bell/sound"
 	_ "github.com/restanrm/bell/statik"
 	"github.com/rs/cors"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -46,61 +46,21 @@ By default, both the front and the API are run on the same server.`,
 		}
 
 		r := mux.NewRouter()
-		switch len(args) {
-		case 0:
-			prepareFront(r)
+		if serverOptions.api {
 			prepareAPI(r)
 			serve(r)
-		case 1:
-			switch args[0] {
-			case "-server":
-				prepareAPI(r)
-				serve(r)
-			case "-front":
-				prepareFront(r)
-				serve(r)
-			default:
-				logrus.Error("Options can only be [-server|-front]")
-				return
-			}
-		default:
-			logrus.Error("Too many arguments")
-			return
 		}
 
+		if serverOptions.front {
+			prepareFront(r)
+			serve(r)
+		}
+
+		prepareAPI(r)
+		prepareFront(r)
+		serve(r)
+
 	},
-}
-
-func prepareAPI(r *mux.Router) {
-	sounds := sound.New(viper.GetString("storefile"))
-
-	api := r.PathPrefix("/api/v1").Subrouter()
-
-	api.HandleFunc("/", bell.ListSounds(sounds))
-	api.HandleFunc("/play/{sound:[-a-zA-Z]+}", bell.SoundPlayer(sounds))
-	api.HandleFunc("/sounds", bell.AddSound(sounds)).Methods("POST")
-	api.HandleFunc("/sounds", bell.ListSounds(sounds)).Methods("GET")
-	api.HandleFunc("/sounds/{sound:[-a-zA-Z]+}", bell.DeleteSound(sounds)).Methods("DELETE")
-	api.HandleFunc("/sounds/{sound:[-a-zA-Z]+}", bell.GetSound(sounds)).Methods("GET")
-
-	api.HandleFunc("/tts", bell.TtsPostHandler()).Methods("POST")
-	api.HandleFunc("/tts", bell.TtsGetHandler()).Methods("GET")
-
-}
-func prepareFront(r *mux.Router) {
-	statikFS, err := fs.New()
-	if err != nil {
-		log.Fatal(err)
-	}
-	if viper.GetBool("embed.front") {
-		r.PathPrefix("/").Handler(http.FileServer(statikFS))
-	} else {
-		r.PathPrefix("/").Handler(http.FileServer(http.Dir("front/dist")))
-	}
-}
-func serve(r *mux.Router) {
-	logrus.Info("Listening on address: ", viper.GetString("listen"))
-	log.Fatal(http.ListenAndServe(viper.GetString("listen"), cors.Default().Handler(bell.WebLogger(r))))
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -114,6 +74,14 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+
+	rootCmd.Flags().BoolVarP(&serverOptions.api, "api", "a", false, "Allows to run the api as standalone service")
+	rootCmd.Flags().BoolVarP(&serverOptions.front, "front", "f", false, "Allows to run the front separatly from the backend")
+}
+
+var serverOptions struct {
+	front bool
+	api   bool
 }
 
 // initConfig reads in config file and ENV variables if set.
@@ -141,4 +109,41 @@ func exitIfNotSetted(key string) {
 		fmt.Printf("required variable %q is not setted\n", key)
 		os.Exit(1)
 	}
+}
+
+func prepareAPI(r *mux.Router) {
+	var sounds sound.Sounder
+	sounds = sound.New(viper.GetString("storefile"))
+	sounds = sound.NewLoggingSound(sounds)
+
+	api := r.PathPrefix("/api/v1").Subrouter()
+
+	api.HandleFunc("/", localHttp.ListSounds(sounds))
+	api.HandleFunc("/play/{sound:[-a-zA-Z]+}", localHttp.SoundPlayer(sounds))
+	api.HandleFunc("/sounds", localHttp.AddSound(sounds)).Methods("POST")
+	api.HandleFunc("/sounds", localHttp.ListSounds(sounds)).Methods("GET")
+	api.HandleFunc("/sounds/{sound:[-a-zA-Z]+}", localHttp.DeleteSound(sounds)).Methods("DELETE")
+	api.HandleFunc("/sounds/{sound:[-a-zA-Z]+}", localHttp.GetSound(sounds)).Methods("GET")
+
+	api.HandleFunc("/tts", localHttp.TtsPostHandler()).Methods("POST")
+	api.HandleFunc("/tts", localHttp.TtsGetHandler()).Methods("GET")
+
+}
+
+func prepareFront(r *mux.Router) {
+	statikFS, err := fs.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+	if viper.GetBool("embed.front") {
+		r.PathPrefix("/").Handler(http.FileServer(statikFS))
+	} else {
+		r.PathPrefix("/").Handler(http.FileServer(http.Dir("front/dist")))
+	}
+}
+
+func serve(r *mux.Router) {
+	logrus.Info("Listening on address: ", viper.GetString("listen"))
+	log.Fatal(http.ListenAndServe(viper.GetString("listen"), cors.Default().Handler(localHttp.WebLogger(r))))
+
 }
