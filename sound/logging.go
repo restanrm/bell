@@ -57,7 +57,6 @@ func (l *loggingSound) PlaySound(name string, player player.Player) error {
 		logrus.WithFields(logrus.Fields{
 			"method": "PlaySound",
 			"name":   name,
-			"player": player,
 			"took":   time.Since(begin),
 		}).Info("")
 	}(time.Now())
