@@ -1,3 +1,5 @@
+// Package sound describe what a sound service is and propose an
+// inMemory implematation of such service
 package sound
 
 import (

@@ -1,42 +1,42 @@
-package main
+package http
 
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/restanrm/bell/player"
 	"github.com/restanrm/bell/sound"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 )
 
-func midLogger(fn http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		log.Print("client=", r.RemoteAddr, " URL=", r.URL.Path)
-		fn(w, r)
-	}
-}
-
-func webLogger(h http.Handler) http.Handler {
+// WebLogger return log about the http queries
+func WebLogger(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
-		log.Print("client=", r.RemoteAddr, " URL=", r.URL.Path, " Method=", r.Method, " Params=", r.PostForm)
+		defer func(begin time.Time) {
+			logrus.WithFields(logrus.Fields{
+				"client": r.RemoteAddr,
+				"URL":    r.URL.Path,
+				"Method": r.Method,
+				"Params": r.PostForm,
+				"took":   time.Since(begin),
+			}).Debug("HTTP informations")
+		}(time.Now())
 		h.ServeHTTP(w, r)
 	})
 }
 
 var rxSound = regexp.MustCompile(`^[-a-zA-Z]+$`)
 
-// soundPlayer allow to play a sound from sounder service
-func soundPlayer(vault sound.Sounder) http.HandlerFunc {
+// SoundPlayer allow to play a sound from sounder service
+func SoundPlayer(vault sound.Sounder) http.HandlerFunc {
 	m := new(player.MpvPlayer)
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -62,8 +62,8 @@ func soundPlayer(vault sound.Sounder) http.HandlerFunc {
 	}
 }
 
-// addNewSound to Sounder service
-func addSound(vault sound.Sounder) http.HandlerFunc {
+// AddNewSound to Sounder service
+func AddSound(vault sound.Sounder) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// this function add new sound file on sound dir path
 		r.ParseMultipartForm(int64(1 * 1024 * 1024))
@@ -112,8 +112,8 @@ func addSound(vault sound.Sounder) http.HandlerFunc {
 	}
 }
 
-// deleteSound allows to delete sound from library
-func deleteSound(vault sound.Sounder) http.HandlerFunc {
+// DeleteSound allows to delete sound from library
+func DeleteSound(vault sound.Sounder) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		soundName := vars["sound"]
@@ -139,8 +139,8 @@ func deleteSound(vault sound.Sounder) http.HandlerFunc {
 	}
 }
 
-// listSounds function
-func listSounds(vault sound.Sounder) http.HandlerFunc {
+// ListSounds function
+func ListSounds(vault sound.Sounder) http.HandlerFunc {
 	// this function list all currently available sounds
 	return func(w http.ResponseWriter, r *http.Request) {
 		sounds := vault.GetSounds()
@@ -167,7 +167,8 @@ func listSounds(vault sound.Sounder) http.HandlerFunc {
 	}
 }
 
-func getSound(vault sound.Sounder) http.HandlerFunc {
+// GetSound allows to retrieve asound from the server
+func GetSound(vault sound.Sounder) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		soundName := vars["sound"]
@@ -201,57 +202,3 @@ func getSound(vault sound.Sounder) http.HandlerFunc {
 }
 
 // part for TextToSpeech
-
-func ttsPostHandler() http.HandlerFunc {
-	var tts = NewTTS(
-		viper.GetBool("flite"),
-		viper.GetString("polly.accessKey"),
-		viper.GetString("polly.secretKey"),
-	)
-	var m = &player.MpvPlayer{}
-	return func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
-		texts, ok := r.PostForm["text"]
-		if !ok {
-			http.Error(w, "Bad request", http.StatusBadRequest)
-			return
-		}
-		var text = "Please give some content to text variable via POST form"
-		if len(texts) >= 1 {
-			text = texts[0]
-		}
-		tts.Say(text, m)
-	}
-}
-
-func ttsGetHandler() http.HandlerFunc {
-	pattern := `
-<!doctype html>
-	<head></head>
-	<body>
-		<div>
-			<form method="POST">
-				<label for="text">Text to say</label>
-				<input type="text" name="text" id="text" size="75"/>
-				<input type="submit" value="Send" />
-			</form>
-		</div>
-	</body>
-</html>
-	`
-	tmpl, err := template.New("ttsPost").Parse(pattern)
-	//tmpl, err := template.ParseGlob(pattern)
-	if err != nil {
-		logrus.WithFields(logrus.Fields{
-			"error": err,
-		}).Error("Failed to load template")
-	}
-	return func(w http.ResponseWriter, r *http.Request) {
-		err = tmpl.Execute(w, nil)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error": err,
-			}).Error("Failed to write template to client")
-		}
-	}
-}

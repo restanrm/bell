@@ -1,3 +1,5 @@
+// Package player is the package that describe what a player is and
+// it propose an implementation of this interface with mpv player
 package player
 
 import (
@@ -11,15 +13,22 @@ import (
 type MpvPlayer struct {
 }
 
+// Middleware is the type that allows to chain Player objects
+type Middleware func(Player) Player
+
+// Player is the interface to allow any implementation of the player service.
 type Player interface {
 	Play(filepath string) error
 	PlayFilepath(string) error
 }
 
+// Play is the function used to play sounds
+// it concatenate the given path with the filepath of the application
 func (mp *MpvPlayer) Play(path string) error {
 	return mp.play(filepath.Join(viper.GetString("soundDir"), path))
 }
 
+// PlayFilepath is a function to play a file given a filepath
 func (mp *MpvPlayer) PlayFilepath(fp string) error {
 	return mp.play(fp)
 }
