@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"github.com/restanrm/bell/sound"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
