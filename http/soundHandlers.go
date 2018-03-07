@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -16,10 +16,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// WebLogger return log about the http queries
 func WebLogger(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
-		log.Print("client=", r.RemoteAddr, " URL=", r.URL.Path, " Method=", r.Method, " Params=", r.PostForm)
+		defer func(begin time.Time) {
+			logrus.WithFields(logrus.Fields{
+				"client": r.RemoteAddr,
+				"URL":    r.URL.Path,
+				"Method": r.Method,
+				"Params": r.PostForm,
+				"took":   time.Since(begin),
+			}).Debug("HTTP informations")
+		}(time.Now())
 		h.ServeHTTP(w, r)
 	})
 }

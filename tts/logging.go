@@ -19,11 +19,10 @@ func NewLoggingService(s Sayer) Sayer {
 func (l *loggingService) Say(text string, p player.Player) error {
 	defer func(begin time.Time) {
 		logrus.WithFields(logrus.Fields{
-			"service": "tts",
 			"methods": "Say",
 			"text":    text,
 			"took":    time.Since(begin),
-		}).Info("")
+		}).Info("logging tts service query")
 	}(time.Now())
 	return l.Sayer.Say(text, p)
 }

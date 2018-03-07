@@ -100,6 +100,8 @@ func initConfig() {
 	viper.SetDefault("polly.voice", "Amy")
 	viper.BindEnv("embed.front", "EMBED_FRONT")
 	viper.SetDefault("embed.front", true)
+	viper.BindEnv("verbose", "VERBOSE")
+	viper.SetDefault("verbose", false)
 	viper.AutomaticEnv() // read in environment variables that match
 }
 
