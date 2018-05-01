@@ -17,7 +17,8 @@ RUN cd /go/src/github.com/restanrm/bell && \
     /go/bin/statik -src=./front/dist && \
     export PATH=$PATH:/usr/local/go/bin:/go/bin && export GOPATH=/go && \
     go generate && \
-    go install 
+    go get ./... && \
+    go install ./...
 
 FROM ubuntu:17.10
 
@@ -29,6 +30,7 @@ WORKDIR /data
 VOLUME /data
 
 COPY --from=builder /go/bin/bell /bell
+COPY --from=builder /go/bin/bellctl /bellctl
 COPY store.json /data/store.json
 COPY sounds /data/sounds
 

@@ -61,6 +61,31 @@ func SoundPlayer(vault sound.Sounder) http.HandlerFunc {
 		}).Debug("Sound have been found, playing now…")
 	}
 }
+func PlaySoundByTag(vault sound.Sounder) http.HandlerFunc {
+	m := new(player.MpvPlayer)
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		tag := vars["tag"]
+		// validate sound name to regex
+		if !rxSound.MatchString(tag) {
+			w.WriteHeader(http.StatusBadRequest)
+			logrus.WithFields(logrus.Fields{"tag": tag}).Warn("Client made a request with wrong tag name. It doesn't match the regexp")
+			fmt.Fprintf(w, "Bad tag. It doesn't match the regex '^[-a-ZA-Z]+$'")
+			return
+		}
+		err := vault.PlaySoundByTag(tag, m)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			logrus.WithFields(logrus.Fields{
+				"tag": tag,
+			}).Info("Sound with this tag has not been found in store")
+			return
+		}
+		logrus.WithFields(logrus.Fields{
+			"tag": tag,
+		}).Debug("tag have been found, playing a matching sound now…")
+	}
+}
 
 // AddNewSound to Sounder service
 func AddSound(vault sound.Sounder) http.HandlerFunc {
@@ -73,6 +98,11 @@ func AddSound(vault sound.Sounder) http.HandlerFunc {
 			logrus.WithFields(logrus.Fields{}).Error("Missing \"name\" field")
 			fmt.Fprintf(w, "Missing \"name\" field")
 			return
+		}
+		var soundTags []string
+		values := r.URL.Query()
+		if tags, ok := values["tag"]; ok {
+			soundTags = tags
 		}
 		// validate sound name to regex
 		if !rxSound.MatchString(soundName) {
@@ -103,7 +133,7 @@ func AddSound(vault sound.Sounder) http.HandlerFunc {
 		defer f.Close()
 		io.Copy(f, file)
 
-		err = vault.CreateSound(soundName, soundFilepath)
+		err = vault.CreateSound(soundName, soundFilepath, soundTags...)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error": err,

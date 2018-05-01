@@ -17,6 +17,8 @@ const (
 	ListPath = "/api/v1/sounds"
 	// PlayPath is the path to play sounds
 	PlayPath = "/api/v1/play/"
+	// TagPath is the path to play sounds by tag
+	TagPath = "/api/v1/tag/"
 	// TtsPath is the path used to push content to read
 	TtsPath = "/api/v1/tts"
 	// DeleteSoundPath is the path used to delete sounds from the library
@@ -26,6 +28,10 @@ const (
 	AddSoundPath = "/api/v1/sounds"
 	// GetSoundPath is the path used to retrieve sound content
 	GetSoundPath = "/api/v1/sounds/"
+)
+
+var (
+	tagOption bool
 )
 
 // rootCmd represents the base command when called without any subcommands

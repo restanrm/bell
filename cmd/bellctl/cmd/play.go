@@ -20,7 +20,13 @@ var playCmd = &cobra.Command{
 			return
 		}
 		sound := args[0]
-		address, err := url.Parse(viper.GetString("bell.address") + PlayPath + sound)
+		var path string
+		if tagOption {
+			path = TagPath
+		} else {
+			path = PlayPath
+		}
+		address, err := url.Parse(viper.GetString("bell.address") + path + sound)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error":          err,
@@ -47,5 +53,7 @@ var playCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(playCmd)
+
+	playCmd.Flags().BoolVarP(&tagOption, "tag", "t", false, "Option to play a sound by its tag")
 
 }
