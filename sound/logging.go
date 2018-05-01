@@ -28,7 +28,7 @@ func (l *loggingSound) CreateSound(name, filepath string, tags ...string) error 
 			"took":     time.Since(begin),
 		}).Info("sound service query")
 	}(time.Now())
-	return l.Sounder.CreateSound(name, filepath)
+	return l.Sounder.CreateSound(name, filepath, tags...)
 }
 
 func (l *loggingSound) UpdateSound(sound Sound) error {
@@ -72,7 +72,7 @@ func (l *loggingSound) PlaySoundByTag(tag string, player player.Player) error {
 			"took":   time.Since(begin),
 		}).Info("sound service query")
 	}(time.Now())
-	return l.PlaySoundByTag(tag, player)
+	return l.Sounder.PlaySoundByTag(tag, player)
 }
 
 func (l *loggingSound) GetSound(name string) ([]byte, error) {
