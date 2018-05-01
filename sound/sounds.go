@@ -41,6 +41,8 @@ type inMemorySounds struct {
 }
 
 var (
+	// ErrNoTagMatch is the error return when no tag can be found for the sound
+	ErrNoTagMatch        = func(t string) error { return fmt.Errorf("No sound found matching the tag %v", t) }
 	ErrSoundAlreadyExist = errors.New("Sound already exist")
 	ErrSoundNotFound     = errors.New("Sound not found")
 )
@@ -175,6 +177,9 @@ func (s inMemorySounds) PlaySoundByTag(tag string, player player.Player) error {
 		if contains(v.Tags, tag) {
 			playable = append(playable, v)
 		}
+	}
+	if len(playable) == 0 {
+		return ErrNoTagMatch(tag)
 	}
 	return s.PlaySound(playable[rand.Int()%len(playable)].Name, player)
 }

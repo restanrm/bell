@@ -17,8 +17,6 @@ const (
 	ListPath = "/api/v1/sounds"
 	// PlayPath is the path to play sounds
 	PlayPath = "/api/v1/play/"
-	// TagPath is the path to play sounds by tag
-	TagPath = "/api/v1/tag/"
 	// TtsPath is the path used to push content to read
 	TtsPath = "/api/v1/tts"
 	// DeleteSoundPath is the path used to delete sounds from the library
