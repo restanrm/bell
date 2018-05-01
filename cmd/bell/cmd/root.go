@@ -122,7 +122,6 @@ func prepareAPI(r *mux.Router) {
 
 	api.HandleFunc("/", localHttp.ListSounds(sounds))
 	api.HandleFunc("/play/{sound:[-a-zA-Z]+}", localHttp.SoundPlayer(sounds))
-	api.HandleFunc("/tag/{tag:[-a-zA-Z]+}", localHttp.PlaySoundByTag(sounds))
 	api.HandleFunc("/sounds", localHttp.AddSound(sounds)).Methods("POST")
 	api.HandleFunc("/sounds", localHttp.ListSounds(sounds)).Methods("GET")
 	api.HandleFunc("/sounds/{sound:[-a-zA-Z]+}", localHttp.DeleteSound(sounds)).Methods("DELETE")

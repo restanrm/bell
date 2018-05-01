@@ -20,13 +20,7 @@ var playCmd = &cobra.Command{
 			return
 		}
 		sound := args[0]
-		var path string
-		if tagOption {
-			path = TagPath
-		} else {
-			path = PlayPath
-		}
-		address, err := url.Parse(viper.GetString("bell.address") + path + sound)
+		address, err := url.Parse(viper.GetString("bell.address") + PlayPath + sound)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error":          err,
@@ -35,6 +29,13 @@ var playCmd = &cobra.Command{
 			}).Error("Failed to build url")
 			return
 		}
+
+		if tagOption {
+			q := address.Query()
+			q.Add("tag", "")
+			address.RawQuery = q.Encode()
+		}
+
 		resp, err := http.Get(address.String())
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
