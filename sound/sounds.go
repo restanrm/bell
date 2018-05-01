@@ -32,7 +32,7 @@ type Sounder interface {
 type Sound struct {
 	Name     string   `json:"name"`
 	filePath string   `json:"file_name"`
-	Tags     []string `json:"tags"`
+	Tags     []string `json:"tags,omitempty"`
 }
 
 type inMemorySounds struct {
