@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"sort"
 	"sync"
@@ -18,18 +19,20 @@ import (
 
 // Sounder is the interface to render sound service
 type Sounder interface {
-	CreateSound(name, filepath string) error
+	CreateSound(name, filepath string, tags ...string) error
 	UpdateSound(sound Sound) error
 	DeleteSound(name string) error
 	PlaySound(name string, player player.Player) error
+	PlaySoundByTag(tag string, player player.Player) error
 	GetSound(name string) ([]byte, error)
 	GetSounds() []Sound
 }
 
 // Sound is the struct to represent a sound
 type Sound struct {
-	Name     string `json:"name"`
-	filePath string `json:"file_name"`
+	Name     string   `json:"name"`
+	filePath string   `json:"file_name"`
+	Tags     []string `json:"tags"`
 }
 
 type inMemorySounds struct {
@@ -74,8 +77,9 @@ func load(filepath string) ([]Sound, error) {
 	}
 
 	type ssto struct {
-		Name     string `json:"name"`
-		FileName string `json:"file_name"`
+		Name     string   `json:"name"`
+		FileName string   `json:"file_name"`
+		Tags     []string `json:"tags"`
 	}
 
 	var ss []ssto
@@ -89,6 +93,7 @@ func load(filepath string) ([]Sound, error) {
 		output = append(output, Sound{
 			Name:     s.Name,
 			filePath: viper.GetString("soundDir") + "/" + s.FileName,
+			Tags:     s.Tags,
 		})
 	}
 	return output, nil
@@ -107,13 +112,14 @@ func Load(file string) Sounder {
 }
 
 // CreateSound a new sound in a collections. The file is already on the disk
-func (s inMemorySounds) CreateSound(name, filepath string) error {
+func (s inMemorySounds) CreateSound(name, filepath string, tags ...string) error {
 	s.Lock()
 	defer s.Unlock()
 
 	ss := Sound{
 		Name:     name,
 		filePath: filepath,
+		Tags:     tags,
 	}
 	s.m[name] = ss
 	return nil
@@ -150,6 +156,27 @@ func (s inMemorySounds) PlaySound(name string, player player.Player) error {
 	}
 	player.PlayFilepath(ss.filePath)
 	return nil
+}
+
+func (s inMemorySounds) PlaySoundByTag(tag string, player player.Player) error {
+	s.RLock()
+	defer s.RUnlock()
+	contains := func(list []string, el string) bool {
+		for _, a := range list {
+			if a == el {
+				return true
+			}
+		}
+		return false
+	}
+	// build list of playable
+	var playable []Sound
+	for _, v := range s.m {
+		if contains(v.Tags, tag) {
+			playable = append(playable, v)
+		}
+	}
+	return s.PlaySound(playable[rand.Int()%len(playable)].Name, player)
 }
 
 // GetSounds return a list of sounds for inMemoryImplementation of the service

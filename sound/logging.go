@@ -18,12 +18,13 @@ func NewLoggingSound(s Sounder) Sounder {
 	return &loggingSound{s}
 }
 
-func (l *loggingSound) CreateSound(name, filepath string) error {
+func (l *loggingSound) CreateSound(name, filepath string, tags ...string) error {
 	defer func(begin time.Time) {
 		logrus.WithFields(logrus.Fields{
 			"method":   "CreateSound",
 			"name":     name,
 			"filepath": filepath,
+			"tags":     tags,
 			"took":     time.Since(begin),
 		}).Info("sound service query")
 	}(time.Now())
@@ -61,6 +62,17 @@ func (l *loggingSound) PlaySound(name string, player player.Player) error {
 		}).Info("sound service query")
 	}(time.Now())
 	return l.Sounder.PlaySound(name, player)
+}
+
+func (l *loggingSound) PlaySoundByTag(tag string, player player.Player) error {
+	defer func(begin time.Time) {
+		logrus.WithFields(logrus.Fields{
+			"method": "PlaySoundByTag",
+			"tag":    tag,
+			"took":   time.Since(begin),
+		}).Info("sound service query")
+	}(time.Now())
+	return l.PlaySoundByTag(tag, player)
 }
 
 func (l *loggingSound) GetSound(name string) ([]byte, error) {
