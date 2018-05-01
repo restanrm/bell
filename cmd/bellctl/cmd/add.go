@@ -64,6 +64,15 @@ var addCmd = &cobra.Command{
 		contentType := bodyWriter.FormDataContentType()
 		bodyWriter.Close()
 
+		// add tags to the query if tag list is more than nothing
+		if len(tagsList) > 0 {
+			values := address.Query()
+			for _, tag := range tagsList {
+				values.Add("tag", tag)
+			}
+			address.RawQuery = values.Encode()
+		}
+
 		resp, err := http.Post(address.String(), contentType, bodyBuf)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
@@ -86,6 +95,8 @@ var addCmd = &cobra.Command{
 	},
 }
 
+var tagsList []string
+
 func init() {
 	rootCmd.AddCommand(addCmd)
 	addCmd.Flags().StringP("name", "n", "", "sound name to use as a sound identifier")
@@ -93,4 +104,6 @@ func init() {
 
 	addCmd.Flags().StringP("file", "f", "", "Filepath of the file to send to remote end of the peer")
 	addCmd.MarkFlagRequired("file")
+
+	addCmd.Flags().StringSliceVarP(&tagsList, "tags", "t", []string{}, "List of tags to add to the sound")
 }

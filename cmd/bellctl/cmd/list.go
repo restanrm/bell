@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/sirupsen/logrus"
 	"github.com/restanrm/bell/sound"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -37,8 +37,28 @@ var listCmd = &cobra.Command{
 		}
 		var sounds []sound.Sound
 		json.NewDecoder(resp.Body).Decode(&sounds)
-		if len(sounds) > 0 {
-			fmt.Println("Sounds found")
+		if len(sounds) == 0 {
+			logrus.Info("No sounds found")
+			return
+		}
+
+		// extract list of tags and uniq them
+		var tags = make(map[string]struct{})
+		for _, sound := range sounds {
+			if tagOption {
+				for _, t := range sound.Tags {
+					tags[t] = struct{}{}
+				}
+			}
+		}
+
+		if tagOption {
+			fmt.Printf("List of tags\n")
+			for k := range tags {
+				fmt.Printf("  - %v\n", k)
+			}
+		} else {
+			fmt.Println("List of sounds")
 			for _, sound := range sounds {
 				fmt.Printf("  - %v\n", sound.Name)
 			}
@@ -48,4 +68,6 @@ var listCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(listCmd)
+
+	listCmd.Flags().BoolVarP(&tagOption, "tag", "t", false, "Option to enable tag mode (list or play by tag)")
 }
