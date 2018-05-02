@@ -66,8 +66,8 @@ var backupCmd = &cobra.Command{
 			logrus.WithField("error", err).Error("Failed to create directory to store the downloaded sounds")
 		}
 
-		for _, sound := range sounds {
-			logrus.Infof("Retrieving sound %v", sound.Name)
+		for i, sound := range sounds {
+			logrus.Infof("[%v%%] Retrieving sound %v", (i+1)*100/len(sounds), sound.Name)
 			get(sound.Name, fmt.Sprintf("%v/%v.mp3", soundDir, sound.Name))
 			time.Sleep(sleepRate)
 		}
