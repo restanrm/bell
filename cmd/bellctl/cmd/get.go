@@ -36,58 +36,69 @@ var getCmd = &cobra.Command{
 			return
 		}
 		sound := args[0]
-		address, err := url.Parse(viper.GetString("bell.address") + GetSoundPath + sound)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error":          err,
-				"server address": viper.GetString("bell.address"),
-				"method":         "getCmd.Run",
-			}).Error("Failed to build url")
-			return
-		}
-
-		resp, err := http.Get(address.String())
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"err": err,
-			}).Error("Failed to retrieve sound content")
-			return
-		}
-		defer resp.Body.Close()
 
 		output := cmd.Flag("output").Value.String()
-		var w io.WriteCloser
-		if output == "-" {
-			w = os.Stdout
-		} else {
-			w, err = os.Create(output)
-			if err != nil {
-				logrus.WithFields(logrus.Fields{
-					"error": err,
-				}).Error("Failed to open destination file")
-				return
-			}
-		}
-		defer w.Close()
-		n, err := io.Copy(w, resp.Body)
+
+		err := get(sound, output)
 		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error":        err,
-				"bytesWritten": n,
-				"destination":  output,
-			}).Error("Failed to copy from web to destination")
+			return
 		}
-		logrus.WithFields(logrus.Fields{"bytesWritten": n}).Debug("Written output to destination")
-		err = w.Close()
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error": err,
-			}).Error("Failed to close the file")
-		}
+
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(getCmd)
 	getCmd.Flags().StringP("output", "o", "-", "Filepath of where to save the file content")
+}
+
+func get(sound, output string) (err error) {
+	address, err := url.Parse(viper.GetString("bell.address") + GetSoundPath + sound)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":          err,
+			"server address": viper.GetString("bell.address"),
+			"method":         "getCmd.Run",
+		}).Error("Failed to build url")
+		return
+	}
+
+	resp, err := http.Get(address.String())
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"err": err,
+		}).Error("Failed to retrieve sound content")
+		return
+	}
+	defer resp.Body.Close()
+
+	var w io.WriteCloser
+	if output == "-" {
+		w = os.Stdout
+	} else {
+		w, err = os.Create(output)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("Failed to open destination file")
+			return
+		}
+	}
+	defer w.Close()
+	n, err := io.Copy(w, resp.Body)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":        err,
+			"bytesWritten": n,
+			"destination":  output,
+		}).Error("Failed to copy from web to destination")
+	}
+	logrus.WithFields(logrus.Fields{"bytesWritten": n}).Debug("Written output to destination")
+	err = w.Close()
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("Failed to close the file")
+	}
+	return
 }
