@@ -16,7 +16,7 @@ import (
 // backupCmd represents the backup command
 var backupCmd = &cobra.Command{
 	Use:   "backup",
-	Short: "backup the list of sounds",
+	Short: "backup the list of sounds into an archive",
 	Run: func(cmd *cobra.Command, args []string) {
 		r := cmd.Flag("rate").Value.String()
 
