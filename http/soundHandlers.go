@@ -16,7 +16,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var rxSound = regexp.MustCompile(`^[-a-zA-Z]+$`)
+var rxSound = regexp.MustCompile(`^[-a-zA-Z0-9]+$`)
 
 // WebLogger return log about the http queries
 func WebLogger(h http.Handler) http.Handler {
