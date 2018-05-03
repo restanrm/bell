@@ -72,12 +72,11 @@ var backupCmd = &cobra.Command{
 			time.Sleep(sleepRate)
 		}
 
-		archiveName := baseDir + ".tar.xz"
+		archiveName := baseDir + ".tar.gz"
 		// create archive
 		tar := exec.Command(
 			"tar",
 			"-c",
-			"--xz",
 			"--remove-files",
 			"-f",
 			archiveName,
