@@ -121,11 +121,11 @@ func prepareAPI(r *mux.Router) {
 	api := r.PathPrefix("/api/v1").Subrouter()
 
 	api.HandleFunc("/", localHttp.ListSounds(sounds))
-	api.HandleFunc("/play/{sound:[-a-zA-Z]+}", localHttp.SoundPlayer(sounds))
+	api.HandleFunc("/play/{sound:[-a-zA-Z0-9]+}", localHttp.SoundPlayer(sounds))
 	api.HandleFunc("/sounds", localHttp.AddSound(sounds)).Methods("POST")
 	api.HandleFunc("/sounds", localHttp.ListSounds(sounds)).Methods("GET")
-	api.HandleFunc("/sounds/{sound:[-a-zA-Z]+}", localHttp.DeleteSound(sounds)).Methods("DELETE")
-	api.HandleFunc("/sounds/{sound:[-a-zA-Z]+}", localHttp.GetSound(sounds)).Methods("GET")
+	api.HandleFunc("/sounds/{sound:[-a-zA-Z0-9]+}", localHttp.DeleteSound(sounds)).Methods("DELETE")
+	api.HandleFunc("/sounds/{sound:[-a-zA-Z0-9]+}", localHttp.GetSound(sounds)).Methods("GET")
 
 	api.HandleFunc("/tts", localHttp.TtsPostHandler()).Methods("POST")
 	api.HandleFunc("/tts", localHttp.TtsGetHandler()).Methods("GET")
