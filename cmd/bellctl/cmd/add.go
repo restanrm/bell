@@ -110,6 +110,7 @@ func add(file, name string, tags ...string) (err error) {
 		logrus.WithFields(logrus.Fields{
 			"status_code": resp.StatusCode,
 			"body":        string(content),
+			"soundName":   name,
 		}).Info("Failed to add new sound to bell server")
 		return
 	}
