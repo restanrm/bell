@@ -102,8 +102,10 @@ var restoreCmd = &cobra.Command{
 
 		for i, sound := range sounds {
 			time.Sleep(sleepRate)
-			add(p+"/sounds/"+sound.Name+".mp3", sound.Name, sound.Tags...)
-			logrus.Infof("[%v%%] sound uploaded %v", (i+1)*100/len(sounds), sound.Name)
+			err = add(p+"/sounds/"+sound.Name+".mp3", sound.Name, sound.Tags...)
+			if err == nil {
+				logrus.Infof("[%v%%] sound uploaded %v", (i+1)*100/len(sounds), sound.Name)
+			}
 		}
 		logrus.Infof("Successfully restored the archive")
 
