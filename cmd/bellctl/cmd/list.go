@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/restanrm/bell/sound"
 	"github.com/sirupsen/logrus"
@@ -41,10 +42,13 @@ var listCmd = &cobra.Command{
 				fmt.Printf("  - %v\n", k)
 			}
 		} else {
-			fmt.Println("List of sounds")
+			fmt.Printf("+-%30v-+-%50v-+\n", strings.Repeat("-", 30), strings.Repeat("-", 50))
+			fmt.Printf("| %-30v | %-50v |\n", "Sound", "Tags")
+			fmt.Printf("+-%30v-+-%50v-+\n", strings.Repeat("-", 30), strings.Repeat("-", 50))
 			for _, sound := range sounds {
-				fmt.Printf("  - %v\n", sound.Name)
+				fmt.Printf("| %-30v | %-50v |\n", sound.Name, strings.Join(sound.Tags, ","))
 			}
+			fmt.Printf("+-%30v-+-%50v-+\n", strings.Repeat("-", 30), strings.Repeat("-", 50))
 		}
 	},
 }
