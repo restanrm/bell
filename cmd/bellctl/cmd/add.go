@@ -27,7 +27,7 @@ var addCmd = &cobra.Command{
 		soundName := cmd.Flag("name").Value.String()
 		soundFile := cmd.Flag("file").Value.String()
 
-		err := add(soundName, soundFile, tagsList...)
+		err := add(soundFile, soundName, tagsList...)
 		if err != nil {
 			return
 		}
