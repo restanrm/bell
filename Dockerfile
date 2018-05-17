@@ -36,4 +36,4 @@ COPY sounds /data/sounds
 
 EXPOSE 10101
 
-ENTRYPOINT ["/bell"]
+CMD ["/bell"]
