@@ -29,11 +29,11 @@ RUN apt-get update && apt-get -y install \
 WORKDIR /data
 VOLUME /data
 
-COPY --from=builder /go/bin/bell /bell
-COPY --from=builder /go/bin/bellctl /bellctl
+COPY --from=builder /go/bin/bell /usr/local/bin/bell
+COPY --from=builder /go/bin/bellctl /usr/local/bin/bellctl
 COPY store.json /data/store.json
 COPY sounds /data/sounds
 
 EXPOSE 10101
 
-ENTRYPOINT ["/bell"]
+ENTRYPOINT ["bell"]
