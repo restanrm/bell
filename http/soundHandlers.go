@@ -50,7 +50,6 @@ func SoundPlayer(vault sound.Sounder) http.HandlerFunc {
 		}
 		var err error
 		if _, ok := r.URL.Query()["tag"]; ok {
-			fmt.Println(sound)
 			err = vault.PlaySoundByTag(sound, m)
 		} else {
 			err = vault.PlaySound(sound, m)
