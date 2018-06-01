@@ -1,9 +1,11 @@
 FROM node:9.5.0 as builder
 
+ARG GOVERSION=1.10.2
+
 # Install golang and set GOPATH
 RUN cd /tmp/ && \
-    wget https://dl.google.com/go/go1.9.4.linux-amd64.tar.gz && \
-    tar -C /usr/local -xzf go1.9.4.linux-amd64.tar.gz && \
+    wget https://dl.google.com/go/go${GOVERSION}.linux-amd64.tar.gz && \
+    tar -C /usr/local -xzf go${GOVERSION}.linux-amd64.tar.gz && \
     export PATH=$PATH:/usr/local/go/bin && export GOPATH=/go && \
     go get -v github.com/restanrm/bell && \
     go get -v github.com/rakyll/statik
