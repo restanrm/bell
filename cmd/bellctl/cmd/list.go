@@ -42,15 +42,49 @@ var listCmd = &cobra.Command{
 				fmt.Printf("  - %v\n", k)
 			}
 		} else {
-			fmt.Printf("+-%30v-+-%50v-+\n", strings.Repeat("-", 30), strings.Repeat("-", 50))
-			fmt.Printf("| %-30v | %-50v |\n", "Sound", "Tags")
-			fmt.Printf("+-%30v-+-%50v-+\n", strings.Repeat("-", 30), strings.Repeat("-", 50))
+			// get max column sizes for sounds and tags
+			ta, tb := "Sound", "Tags"
+			mls, mlt := getMaxColumnSizes(sounds, ta, tb)
+			printHeader(mls, mlt, ta, tb)
 			for _, sound := range sounds {
-				fmt.Printf("| %-30v | %-50v |\n", sound.Name, strings.Join(sound.Tags, ","))
+				printLine(mls, mlt, sound.Name, strings.Join(sound.Tags, ","))
 			}
-			fmt.Printf("+-%30v-+-%50v-+\n", strings.Repeat("-", 30), strings.Repeat("-", 50))
+			printFooter(mls, mlt)
 		}
 	},
+}
+
+func printHeader(mls, mlt int, ta, tb string) {
+	printDashLine(mls, mlt)
+	printLine(mls, mlt, ta, tb)
+	printDashLine(mls, mlt)
+}
+
+func printFooter(mls, mlt int) {
+	printDashLine(mls, mlt)
+}
+
+func printDashLine(mls, mlt int) {
+	fmt.Printf("+-%[1]*[3]v-+-%[2]*[4]v-+\n", mls, mlt, strings.Repeat("-", mls), strings.Repeat("-", mlt))
+}
+
+func printLine(mls, mlt int, sound, tags string) {
+	fmt.Printf("| %-[1]*[3]v | %-[2]*[4]v |\n", mls, mlt, sound, tags)
+}
+
+func getMaxColumnSizes(sounds []sound.Sound, ta, tb string) (int, int) {
+	mls, mlt := 0, 0
+	sounds = append(sounds, sound.Sound{Name: ta, Tags: []string{tb}})
+	for _, sound := range sounds {
+		if mls < len(sound.Name) {
+			mls = len(sound.Name)
+		}
+		t := strings.Join(sound.Tags, ",")
+		if mlt < len(t) {
+			mlt = len(t)
+		}
+	}
+	return mls, mlt
 }
 
 func init() {
