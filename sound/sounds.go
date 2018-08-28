@@ -156,7 +156,9 @@ func (s inMemorySounds) PlaySound(name string, player player.Player) error {
 	if !ok {
 		return ErrSoundNotFound
 	}
-	player.PlayFilepath(ss.filePath)
+	go func() {
+		player.PlayFilepath(ss.filePath)
+	}()
 	return nil
 }
 
