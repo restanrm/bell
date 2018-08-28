@@ -102,7 +102,12 @@ func initConfig() {
 	viper.SetDefault("embed.front", true)
 	viper.BindEnv("verbose", "VERBOSE")
 	viper.SetDefault("verbose", false)
+	viper.BindEnv("mattermost.token", "MATTERMOST_SLASH_TOKEN")
 	viper.AutomaticEnv() // read in environment variables that match
+
+	if viper.GetBool("verbose") {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
 }
 
 func exitIfNotSetted(key string) {
@@ -129,6 +134,8 @@ func prepareAPI(r *mux.Router) {
 
 	api.HandleFunc("/tts", localHttp.TtsPostHandler()).Methods("POST")
 	api.HandleFunc("/tts", localHttp.TtsGetHandler()).Methods("GET")
+
+	api.HandleFunc("/mattermost", localHttp.MattermostHandler(sounds)).Methods("POST")
 
 }
 
