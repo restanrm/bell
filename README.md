@@ -11,6 +11,7 @@ bell is a small api to play sound via an API.
 | /api/v1/sounds         | GET    | list registered sounds that can be played |
 | /api/v1/sounds         | POST   | add new sound to bell                     |
 | /api/v1/sounds/{sound} | DELETE | remove sound from bell                    |
+| /api/v1/mattermost     | POST   | allow slash commands on mattermost        |
 
 ## dependencies
 This program needs `mpv` to play sound.
@@ -26,6 +27,7 @@ docker run --rm -it \
   -e POLLY_SECRET_KEY=${POLLY_SECRET_KEY} \
   -e FLITE=${FLITE} \
   -e POLLY_VOICE=${POLLY_VOICE} \
+  -e MATTERMOST_SLASH_TOKEN=${MATTERMOST_SLASH_TOKEN}
   -p 10101:10101 \
   --device /dev/snd \
   -e PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native \
