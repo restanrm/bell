@@ -20,9 +20,13 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	localHttp "github.com/restanrm/bell/http"
+	"github.com/restanrm/bell/metrics"
 	"github.com/restanrm/bell/sound"
 	_ "github.com/restanrm/bell/statik"
 	"github.com/rs/cors"
@@ -46,6 +50,9 @@ By default, both the front and the API are run on the same server.`,
 		}
 
 		r := mux.NewRouter()
+		m := r.PathPrefix("/").Subrouter()
+		m.Handle("/metrics", promhttp.Handler())
+
 		if serverOptions.api {
 			prepareAPI(r)
 			serve(r)
@@ -125,17 +132,19 @@ func prepareAPI(r *mux.Router) {
 
 	api := r.PathPrefix("/api/v1").Subrouter()
 
-	api.HandleFunc("/", localHttp.ListSounds(sounds))
-	api.HandleFunc("/play/{sound:[-a-zA-Z0-9]+}", localHttp.SoundPlayer(sounds))
-	api.HandleFunc("/sounds", localHttp.AddSound(sounds)).Methods("POST")
-	api.HandleFunc("/sounds", localHttp.ListSounds(sounds)).Methods("GET")
-	api.HandleFunc("/sounds/{sound:[-a-zA-Z0-9]+}", localHttp.DeleteSound(sounds)).Methods("DELETE")
-	api.HandleFunc("/sounds/{sound:[-a-zA-Z0-9]+}", localHttp.GetSound(sounds)).Methods("GET")
+	// register metrics endpoint
 
-	api.HandleFunc("/tts", localHttp.TtsPostHandler()).Methods("POST")
-	api.HandleFunc("/tts", localHttp.TtsGetHandler()).Methods("GET")
+	api.HandleFunc("/", instProm("root", localHttp.ListSounds(sounds)))
+	api.HandleFunc("/play/{sound:[-a-zA-Z0-9]+}", instProm("play", localHttp.SoundPlayer(sounds)))
+	api.HandleFunc("/sounds", instProm("add", localHttp.AddSound(sounds))).Methods("POST")
+	api.HandleFunc("/sounds", instProm("list", localHttp.ListSounds(sounds))).Methods("GET")
+	api.HandleFunc("/sounds/{sound:[-a-zA-Z0-9]+}", instProm("delete", localHttp.DeleteSound(sounds))).Methods("DELETE")
+	api.HandleFunc("/sounds/{sound:[-a-zA-Z0-9]+}", instProm("get", localHttp.GetSound(sounds))).Methods("GET")
 
-	api.HandleFunc("/mattermost", localHttp.MattermostHandler(sounds)).Methods("POST")
+	api.HandleFunc("/tts", instProm("say", localHttp.TtsPostHandler())).Methods("POST")
+	api.HandleFunc("/tts", instProm("sayform", localHttp.TtsGetHandler())).Methods("GET")
+
+	api.HandleFunc("/mattermost", instProm("mattermost", localHttp.MattermostHandler(sounds))).Methods("POST")
 
 }
 
@@ -144,11 +153,26 @@ func prepareFront(r *mux.Router) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	f := r.PathPrefix("/").Subrouter()
+
 	if viper.GetBool("embed.front") {
-		r.PathPrefix("/").Handler(http.FileServer(statikFS))
+		f.Handle("/", instProm("front", http.FileServer(statikFS).ServeHTTP))
 	} else {
-		r.PathPrefix("/").Handler(http.FileServer(http.Dir("front/dist")))
+		f.Handle("/", instProm("front", http.FileServer(http.Dir("front/dist")).ServeHTTP))
 	}
+}
+
+func instProm(label string, f http.HandlerFunc) http.HandlerFunc {
+	return promhttp.InstrumentHandlerDuration(
+		metrics.HTTPRequestDuration.MustCurryWith(
+			prometheus.Labels{"handler": label}),
+		promhttp.InstrumentHandlerCounter(
+			metrics.HTTPRequestsCount.MustCurryWith(
+				prometheus.Labels{"handler": label}),
+			f,
+		),
+	)
 }
 
 func serve(r *mux.Router) {
