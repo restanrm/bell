@@ -26,6 +26,9 @@ const (
 	AddSoundPath = "/api/v1/sounds"
 	// GetSoundPath is the path used to retrieve sound content
 	GetSoundPath = "/api/v1/sounds/"
+
+	// RegisterPath allow to register this host as a player client
+	RegisterPath = "/api/v1/clients/register"
 )
 
 var (

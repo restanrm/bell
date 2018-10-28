@@ -25,6 +25,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
+	"github.com/restanrm/bell/connstore"
 	localHttp "github.com/restanrm/bell/http"
 	"github.com/restanrm/bell/metrics"
 	"github.com/restanrm/bell/sound"
@@ -132,6 +133,8 @@ func prepareAPI(r *mux.Router) {
 
 	api := r.PathPrefix("/api/v1").Subrouter()
 
+	cs := connstore.New()
+
 	// register metrics endpoint
 
 	api.HandleFunc("/", instProm("root", localHttp.ListSounds(sounds)))
@@ -145,6 +148,10 @@ func prepareAPI(r *mux.Router) {
 	api.HandleFunc("/tts", instProm("sayform", localHttp.TtsGetHandler())).Methods("GET")
 
 	api.HandleFunc("/mattermost", instProm("mattermost", localHttp.MattermostHandler(sounds))).Methods("POST")
+
+	// websocket handler
+	api.HandleFunc("/clients", instProm("connStoreList", localHttp.ListClients(cs))).Methods("Get")
+	api.HandleFunc("/clients/register", instProm("connStoreRegister", localHttp.RegisterClients(cs))).Methods("GET")
 
 }
 
