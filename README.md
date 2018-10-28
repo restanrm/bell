@@ -13,6 +13,34 @@ bell is a small api to play sound via an API.
 | /api/v1/sounds/{sound} | DELETE | remove sound from bell                    |
 | /api/v1/mattermost     | POST   | allow slash commands on mattermost        |
 
+
+## Play on client
+The API offer possibility to list the connected clients that can play music.
+
+| Endpoint                 | Method | Description                               |
+| ----------------------   | ------ | ----------------------------------------- |
+| /api/v1/clients          | GET    | list clients that can play music          |
+| /api/v1/clients/register | GET    | register to the websocket endpoint        |
+
+A client can register itself in this list in order to receive order to play
+some music. To play a music a simple play API is recommended to use. The
+arguments waited for is just the name of the sound.
+
+message to register a new client. The name could be omitted, it will be replaced with an uuidV4 value.
+```json
+{
+  "name":"name_of_the_client"
+}
+```
+
+order to play some sound:
+```json
+{
+  "play":"soundName"
+}
+```
+
+
 ## dependencies
 This program needs `mpv` to play sound.
 
