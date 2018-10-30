@@ -30,11 +30,16 @@ var playCmd = &cobra.Command{
 			return
 		}
 
+		q := address.Query()
 		if tagOption {
-			q := address.Query()
+			logrus.Warning("Tag option is deprecated. No need to use it to play a sound now.")
 			q.Add("tag", "")
-			address.RawQuery = q.Encode()
 		}
+
+		if viper.GetString("playOnClient") != "" {
+			q.Add("destination", viper.GetString("playOnClient"))
+		}
+		address.RawQuery = q.Encode()
 
 		resp, err := http.Get(address.String())
 		if err != nil {
@@ -56,5 +61,7 @@ func init() {
 	rootCmd.AddCommand(playCmd)
 
 	playCmd.Flags().BoolVarP(&tagOption, "tag", "t", false, "Option to play a sound by its tag")
+	playCmd.Flags().StringP("destination", "", "", "Destination to play the sound")
+	viper.BindPFlag("playOnClient", playCmd.Flags().Lookup("destination"))
 
 }
