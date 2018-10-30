@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 
+	localHttp "github.com/restanrm/bell/http"
 	"github.com/restanrm/bell/sound"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -87,12 +88,6 @@ func getMaxColumnSizes(sounds []sound.Sound, ta, tb string) (int, int) {
 	return mls, mlt
 }
 
-func init() {
-	rootCmd.AddCommand(listCmd)
-
-	listCmd.Flags().BoolVarP(&tagOption, "tag", "t", false, "Option to enable tag mode (list or play by tag)")
-}
-
 func list() (sounds []sound.Sound, err error) {
 	address, err := url.Parse(viper.GetString("bell.address") + ListPath)
 	if err != nil {
@@ -115,4 +110,64 @@ func list() (sounds []sound.Sound, err error) {
 		err = errors.New("No sounds found")
 	}
 	return
+}
+
+var listTagsCmd = &cobra.Command{
+	Use:   "tags",
+	Short: "List tags in bell server",
+	Run: func(cmd *cobra.Command, args []string) {
+		sounds, err := list()
+		if err != nil {
+			return
+		}
+
+		// extract list of tags and uniq them
+		var tags = make(map[string]struct{})
+		for _, sound := range sounds {
+			for _, t := range sound.Tags {
+				tags[t] = struct{}{}
+			}
+		}
+
+		fmt.Printf("List of tags\n")
+		for k := range tags {
+			fmt.Printf("  - %v\n", k)
+		}
+	},
+}
+
+var listClientsCmd = &cobra.Command{
+	Use:   "clients",
+	Short: "List clients connected to bell server that can play sounds",
+	Run: func(cmd *cobra.Command, args []string) {
+		address, err := url.Parse(viper.GetString("bell.address") + ListClientsPath)
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"server address": viper.GetString("bell.address"),
+				"method":         "listClientsCmd.Run",
+			}).WithError(err).Errorf("Failed to build URL")
+		}
+		resp, err := http.Get(address.String())
+		if err != nil {
+			logrus.WithFields(logrus.Fields{
+				"error": err,
+			}).Error("Failed to contact bell server")
+			return
+		}
+		cl := localHttp.ClientsList{}
+		json.NewDecoder(resp.Body).Decode(&cl)
+		if len(cl.Clients) == 0 {
+			logrus.Infof("No clients registered yet")
+		} else {
+			fmt.Println(cl.Clients)
+		}
+
+	},
+}
+
+func init() {
+	rootCmd.AddCommand(listCmd)
+	listCmd.Flags().BoolVarP(&tagOption, "tag", "t", false, "Option to enable tag mode (list or play by tag)")
+	listCmd.AddCommand(listTagsCmd)
+	listCmd.AddCommand(listClientsCmd)
 }
