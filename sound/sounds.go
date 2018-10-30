@@ -154,7 +154,7 @@ func (s inMemorySounds) PlaySound(name string, player player.Player) error {
 	defer s.RUnlock()
 	ss, ok := s.m[name]
 	if !ok {
-		return ErrSoundNotFound
+		return s.PlaySoundByTag(name, player)
 	}
 	go func() {
 		player.PlayFilepath(ss.filePath)
