@@ -203,7 +203,31 @@ func (s inMemorySounds) GetSound(name string) (ret []byte, err error) {
 	defer s.RUnlock()
 	ss, ok := s.m[name]
 	if !ok {
-		return nil, ErrSoundNotFound
+		return s.getSoundByTag(name)
 	}
 	return ioutil.ReadFile(ss.filePath)
+}
+
+func (s inMemorySounds) getSoundByTag(tag string) (ret []byte, err error) {
+	s.RLock()
+	defer s.RUnlock()
+	contains := func(list []string, el string) bool {
+		for _, a := range list {
+			if a == el {
+				return true
+			}
+		}
+		return false
+	}
+	// build list of playable
+	var playable []Sound
+	for _, v := range s.m {
+		if contains(v.Tags, tag) {
+			playable = append(playable, v)
+		}
+	}
+	if len(playable) == 0 {
+		return nil, ErrSoundNotFound
+	}
+	return ioutil.ReadFile(playable[rand.Int()%len(playable)].filePath)
 }
