@@ -15,7 +15,7 @@ var sayCmd = &cobra.Command{
 	Use:   "say",
 	Short: "say target use tts to say what you wrote",
 	Long:  `say use a string argument to play sound to your bell server.append`,
-	Example: ` 
+	Example: `
   bellctl say hello world
   bellctl say "Why does the skeleton dances alone ? Because he has nobody."
 	`,
@@ -39,6 +39,14 @@ var sayCmd = &cobra.Command{
 			}).Error("Failed to build url")
 			return
 		}
+
+		// play on destination if setted
+		q := address.Query()
+		if viper.GetString("playTTSOnClient") != "" {
+			q.Add("destination", viper.GetString("playTTSOnClient"))
+		}
+		address.RawQuery = q.Encode()
+
 		resp, err := http.PostForm(address.String(), url.Values{"text": {text}})
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
@@ -57,4 +65,6 @@ var sayCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(sayCmd)
+	sayCmd.Flags().StringP("destination", "d", "", "Destination to play the sound")
+	viper.BindPFlag("playTTSOnClient", sayCmd.Flags().Lookup("destination"))
 }

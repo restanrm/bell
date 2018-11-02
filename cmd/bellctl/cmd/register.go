@@ -15,12 +15,20 @@
 package cmd
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/url"
 	"os"
+	"os/exec"
 	"os/signal"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
+	"github.com/restanrm/bell/connstore"
 
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -30,7 +38,7 @@ import (
 // registerCmd represents the register command
 var registerCmd = &cobra.Command{
 	Use:   "register",
-	Short: "",
+	Short: "Register allows to connect to websocket of bell server. It will receive play orders and run them with `mpv`.",
 	Run: func(cmd *cobra.Command, args []string) {
 		address, err := url.Parse(viper.GetString("bell.address") + RegisterPath)
 		if err != nil {
@@ -51,37 +59,28 @@ var registerCmd = &cobra.Command{
 		}
 		defer c.Close()
 
-		// This code wait for order of music to play and then play them.
-		done := make(chan struct{})
-		go func() {
-			defer close(done)
-			for {
-				mt, message, err := c.ReadMessage()
-				if err != nil {
-					if mt == websocket.CloseNormalClosure {
-						return
-					}
-					logrus.WithError(err).Error("Failed to receive some message")
-					return
-				}
-				logrus.Infof("sound to play: %v", string(message))
-			}
-		}()
-
-		client := struct {
-			Name string `json:"name"`
-		}{
-			Name: viper.GetString("register.name"),
-		}
-		// register the client
-		err = c.WriteJSON(client)
+		// send name to server
+		err = sendName(c, viper.GetString("register.name"))
 		if err != nil {
-			logrus.WithError(err).Errorf("Failed to send message")
+			logrus.WithError(err).Errorf("Failed to send name to destination")
 			return
 		}
 
+		// read the name that is actually used by the server
+		name, err := readName(c)
+		if err != nil {
+			logrus.WithError(err).Errorf("Failed to read name from the server")
+			return
+		}
+		logrus.Infof("Client registered as %q", name)
+
+		// start code to listen to play order or closing message
+		done := make(chan struct{})
+		go readOrder(c, done)
+
+		// register on local closing request
 		interrupt := make(chan os.Signal, 1)
-		signal.Notify(interrupt, os.Interrupt)
+		signal.Notify(interrupt, os.Interrupt, os.Kill)
 		for {
 			select {
 			case <-done:
@@ -101,6 +100,107 @@ var registerCmd = &cobra.Command{
 			}
 		}
 	},
+}
+
+type ReadMessager interface {
+	ReadMessage() (messageType int, p []byte, err error)
+}
+
+func readOrder(c ReadMessager, done chan struct{}) {
+	defer close(done)
+	dir, err := ioutil.TempDir("/tmp", "bellPlayer")
+	if err != nil {
+		logrus.Errorf("Failed to create temp dir to store the sounds")
+		os.Exit(-1)
+	}
+	defer os.RemoveAll(dir)
+	for {
+		mt, message, err := c.ReadMessage()
+		if err != nil {
+			if websocket.IsCloseError(err) {
+				fmt.Println("closeError")
+			}
+			fmt.Println(mt, err)
+			logrus.WithError(err).Error("Failed to receive some message")
+			return
+		}
+		s := &connstore.PlayerRequest{}
+		json.Unmarshal(message, s)
+		go func() {
+			switch s.Type {
+			case "error":
+				logrus.Error(s.Data)
+			case "tts":
+				logrus.WithField("text", s.Data).Info("Received TTS order")
+				err = getTTSAndPlay(dir, s.Data)
+				if err != nil {
+					logrus.WithError(err).Errorf("Failed to retrieve and tts %v", s.Data)
+				}
+			case "sound":
+				logrus.WithField("sound", s.Data).Info("Received play sound order")
+				err = getAndPlay(dir, s.Data)
+				if err != nil {
+					logrus.WithError(err).Errorf("Failed to play the sound: %v", s.Data)
+				}
+			}
+		}()
+	}
+}
+
+func getAndPlay(dir, sound string) error {
+	fp := filepath.Join(dir, fmt.Sprintf("%v.mp3", sound))
+	err := get(sound, fp)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to retrieve sound %v", sound)
+	}
+	return play(fp)
+}
+
+func getTTSAndPlay(dir, text string) error {
+	// compute hash of the text to have a filename
+	fp, err := getTTS(dir, text)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to retrieve the sound from the bell server")
+	}
+	return play(fp)
+}
+
+func play(fp string) error {
+	cmd := exec.Command(
+		"mpv",
+		fp,
+	)
+	_, err := cmd.CombinedOutput()
+	if err != nil {
+		return errors.Wrapf(err, "Failed to run the command: %q", strings.Join(cmd.Args, " "))
+	}
+	return nil
+}
+
+type ReadJSONer interface {
+	ReadJSON(interface{}) error
+}
+
+type WriteJSONer interface {
+	WriteJSON(interface{}) error
+}
+
+func sendName(c WriteJSONer, name string) error {
+	err := c.WriteJSON(connstore.RegisterRequest{Name: name})
+	if err != nil {
+		return errors.Wrapf(err, "Failed to send name to server")
+	}
+	return nil
+}
+
+func readName(c ReadJSONer) (name string, err error) {
+	// received used name on server side and timer duration to send ping
+	resp := &connstore.RegisterResponse{}
+	err = c.ReadJSON(resp)
+	if err != nil {
+		return "", errors.Wrapf(err, "Failed to read response")
+	}
+	return resp.Name, nil
 }
 
 func init() {

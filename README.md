@@ -32,11 +32,18 @@ message to register a new client. The name could be omitted, it will be replaced
   "name":"name_of_the_client"
 }
 ```
-
-order to play some sound:
+The received response contains the name of the client that will be used by the server.
 ```json
 {
-  "play":"soundName"
+  "name":"string"
+}
+```
+
+Messages that can be received:
+```json
+{
+  "type":"error|tts|sound",
+  "data": "payload. can be an error message, something to say, or a sound to retrieve."
 }
 ```
 

@@ -11,7 +11,7 @@ import (
 )
 
 // TtsPostHandler handle request to play tts
-func TtsPostHandler() http.HandlerFunc {
+func TtsPostHandler(sender Sender) http.HandlerFunc {
 	var t tts.Sayer
 	t = tts.NewTTS(
 		viper.GetBool("flite"),
@@ -31,7 +31,51 @@ func TtsPostHandler() http.HandlerFunc {
 		if len(texts) >= 1 {
 			text = texts[0]
 		}
-		t.Say(text, m)
+		if dest, ok := r.URL.Query()["destination"]; ok {
+			logrus.WithFields(logrus.Fields{
+				"destination": dest[0],
+				"sound":       text,
+			}).Infof("Sending text to speech order to registered client")
+			SayOnClient(sender, dest[0], text)
+		} else {
+			t.Say(text, m)
+		}
+	}
+}
+
+// TtsPostHandler handle request to play tts
+func TtsGetPostHandler() http.HandlerFunc {
+	var t tts.Sayer
+	t = tts.NewTTS(
+		viper.GetBool("flite"),
+		viper.GetString("polly.accessKey"),
+		viper.GetString("polly.secretKey"),
+	)
+	t = tts.NewLoggingService(t)
+	return func(w http.ResponseWriter, r *http.Request) {
+		r.ParseForm()
+		texts, ok := r.PostForm["text"]
+		if !ok {
+			http.Error(w, "Bad request", http.StatusBadRequest)
+			return
+		}
+		var text = "Please give some content to text variable via POST form"
+		if len(texts) >= 1 {
+			text = texts[0]
+		}
+		content, err := t.GetSay(text)
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			logrus.WithFields(logrus.Fields{"text": string(content)}).Error("Couldn't retrieve text to speech")
+			http.Error(w, "Failed to find the requested file", http.StatusNotFound)
+			return
+		}
+		w.Header().Add("ContentType", "audio/mpeg3")
+		_, err = w.Write(content)
+		if err != nil {
+			logrus.WithField("err", err).Error("Couldn' write file content the responseWriter")
+			return
+		}
 	}
 }
 
