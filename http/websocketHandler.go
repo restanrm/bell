@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
+	"github.com/pkg/errors"
+	"github.com/restanrm/bell/connstore"
 	"github.com/sirupsen/logrus"
 )
 
@@ -13,16 +15,11 @@ type Lister interface {
 }
 
 type Registerer interface {
-	Register(string, *websocket.Conn) error
+	Register(*websocket.Conn) error
 }
 
 type ErrorResponse struct {
 	Error string
-}
-
-// RegisterRequest is the struct that handles registering requests
-type RegisterRequest struct {
-	Name string `json:"name"`
 }
 
 // Register register a client to the websocket handler
@@ -36,14 +33,7 @@ func RegisterClients(registerer Registerer) http.HandlerFunc {
 		}
 		// defer conn.Close() is not run because we only want to close on error case
 
-		rr := &RegisterRequest{}
-		err = conn.ReadJSON(rr)
-		if err != nil {
-			logrus.WithError(err).Errorf("Failed to read registerRequest")
-			return
-		}
-
-		err = registerer.Register(rr.Name, conn)
+		err = registerer.Register(conn)
 		if err != nil {
 			conn.WriteJSON(ErrorResponse{Error: err.Error()})
 			conn.Close()
@@ -52,27 +42,24 @@ func RegisterClients(registerer Registerer) http.HandlerFunc {
 	}
 }
 
-type Getter interface {
-	Get(string) (*websocket.Conn, error)
+type Sender interface {
+	Send(string, connstore.MessageType, string) error
 }
 
-type PlayerRequest struct {
-	Play string `json:"play"`
+func PlayOnClient(a Sender, client, sound string) error {
+	err := a.Send(client, connstore.Sound, sound)
+	if err != nil {
+		return errors.Wrap(err, "Failed to send play order to client")
+	}
+	return nil
 }
 
-func PlayOnClient(getter Getter, client, sound string) {
-	conn, err := getter.Get(client)
+func SayOnClient(a Sender, client, text string) error {
+	err := a.Send(client, connstore.TTS, text)
 	if err != nil {
-		logrus.WithError(err).Errorf("Failed to retrieve connection to client: %v", client)
-		return
+		return errors.Wrap(err, "Failed to send text to speech request to client")
 	}
-	err = conn.WriteJSON(PlayerRequest{Play: sound})
-	if err != nil {
-		logrus.WithError(err).WithFields(logrus.Fields{
-			"player": client,
-			"sound":  sound,
-		}).Errorf("Failed to play sound on player")
-	}
+	return nil
 }
 
 type ClientsList struct {

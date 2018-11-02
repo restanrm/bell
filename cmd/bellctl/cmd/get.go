@@ -15,11 +15,15 @@
 package cmd
 
 import (
+	"crypto/md5"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -101,4 +105,47 @@ func get(sound, output string) (err error) {
 		}).Error("Failed to close the file")
 	}
 	return
+}
+
+func getHash(text string) string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(text)))
+}
+
+// request for sound and retrieve sound
+func getTTS(dir, text string) (fp string, err error) {
+	address, err := url.Parse(viper.GetString("bell.address") + TtsGetPath)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":          err,
+			"server address": viper.GetString("bell.address"),
+		}).Error("Failed to build url")
+		return
+	}
+
+	// create post content to send text to bell server
+	resp, err := http.PostForm(address.String(), url.Values{"text": {text}})
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error": err,
+		}).Error("Failed to contact bell server")
+		return
+	}
+	defer resp.Body.Close()
+
+	fp = filepath.Join(dir, fmt.Sprintf("%v.mp3", getHash(text)))
+	w, err := os.Create(fp)
+	if err != nil {
+		return "", errors.Wrapf(err, "Failed to create temp file to store TTS content.")
+	}
+	defer w.Close()
+
+	n, err := io.Copy(w, resp.Body)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":        err,
+			"bytesWritten": n,
+		}).Error("Failed to copy from web to destination")
+	}
+
+	return fp, nil
 }

@@ -17,8 +17,11 @@ const (
 	ListPath = "/api/v1/sounds"
 	// PlayPath is the path to play sounds
 	PlayPath = "/api/v1/play/"
+
 	// TtsPath is the path used to push content to read
 	TtsPath = "/api/v1/tts"
+	// TtsGetPath is the path used to retrieve generated sound for voice commands
+	TtsGetPath = "/api/v1/tts/retrieve"
 	// DeleteSoundPath is the path used to delete sounds from the library
 	DeleteSoundPath = "/api/v1/sounds/"
 
@@ -29,6 +32,8 @@ const (
 
 	// RegisterPath allow to register this host as a player client
 	RegisterPath = "/api/v1/clients/register"
+	// ListClientsPath is the path to list all connected clients to the bell server
+	ListClientsPath = "/api/v1/clients"
 )
 
 var (
@@ -58,15 +63,15 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	viper.BindEnv("bell.address", "BELL_ADDRESS")
+	viper.SetDefault("bell.address", "http://localhost:10101")
+	rootCmd.PersistentFlags().BoolP("verbose", "v", false, "Increase verbosity")
+	viper.BindPFlag("verbose", rootCmd.PersistentFlags().Lookup("verbose"))
+	if viper.GetBool("verbose") {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	viper.BindEnv("bell.address", "BELL_ADDRESS")
-	viper.SetDefault("bell.address", "http://localhost:10101")
-	viper.BindEnv("verbose", "VERBOSE")
-	viper.SetDefault("verbose", false)
-	if viper.GetBool("verbose") {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
 }

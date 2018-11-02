@@ -26,3 +26,14 @@ func (l *loggingService) Say(text string, p player.Player) error {
 	}(time.Now())
 	return l.Sayer.Say(text, p)
 }
+
+func (l *loggingService) GetSay(text string) ([]byte, error) {
+	defer func(begin time.Time) {
+		logrus.WithFields(logrus.Fields{
+			"methods": "GetSay",
+			"text":    text,
+			"took":    time.Since(begin),
+		}).Info("Retrieve text to speech")
+	}(time.Now())
+	return l.Sayer.GetSay(text)
+}

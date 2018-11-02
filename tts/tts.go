@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/pkg/errors"
 	"github.com/restanrm/bell/player"
 	"github.com/restanrm/golang-tts"
 	"github.com/sirupsen/logrus"
@@ -23,6 +24,7 @@ var _ Sayer = &tts{}
 // Sayer is the interface to transform text to sound
 type Sayer interface {
 	Say(string, player.Player) error
+	GetSay(string) ([]byte, error)
 }
 
 // NewTTS is the function that returns a *tts object. This object implement the
@@ -91,9 +93,7 @@ func exist(filename string) bool {
 	return true
 }
 
-// Say create a tempfile based on the choosen technology of TTS and order the player to
-// play it on speaker
-func (t *tts) Say(text string, p player.Player) error {
+func (t *tts) getSayFilename(text string) (string, error) {
 	var err error
 	filepath := "/tmp/" + getHash(text)
 
@@ -103,50 +103,60 @@ func (t *tts) Say(text string, p player.Player) error {
 	// cached section
 	// if polly file exist, play it
 	if exist(pollyFilename) {
-		p.PlayFilepath(pollyFilename)
-		return nil
+		return pollyFilename, nil
 	}
 	// if flite file exist
 	if exist(fliteFilename) {
 		// if flite it disabled
 		if !t.flite {
 			// try to create pollyfile
-			err = t.createAudioPolly(text, pollyFilename)
+			err := t.createAudioPolly(text, pollyFilename)
 			if err != nil {
 				// if fail, play flitefile
-				p.PlayFilepath(fliteFilename)
-				return nil
+				return fliteFilename, nil
 			}
 			// play new pollyfile
-			p.PlayFilepath(pollyFilename)
-			return nil
+			return pollyFilename, nil
 		}
 		// flite is enabled and file exist, play it
-		p.PlayFilepath(fliteFilename)
-		return nil
+		return fliteFilename, nil
 	}
 
 	// no cache, creation of the file
 	if t.flite {
 		err = t.createAudioFlite(text, fliteFilename)
 		if err != nil {
-			return err
+			return "", errors.Wrapf(err, "Failed to create any sound")
 		}
-		p.PlayFilepath(fliteFilename)
-		return nil
+		return fliteFilename, nil
 	} else {
 		err = t.createAudioPolly(text, pollyFilename)
 		if err != nil {
 			err = t.createAudioFlite(text, fliteFilename)
 			if err != nil {
-				return err
+				return "", errors.Wrapf(err, "Failed to create any sound")
 			}
-			p.PlayFilepath(fliteFilename)
-			return nil
+			return fliteFilename, nil
 		}
-		p.PlayFilepath(pollyFilename)
-		return nil
+		return pollyFilename, nil
 	}
+}
 
+// Say create a tempfile based on the choosen technology of TTS and order the player to
+// play it on speaker
+func (t *tts) Say(text string, p player.Player) error {
+	filepath, err := t.getSayFilename(text)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to retrieve sound file")
+	}
+	p.PlayFilepath(filepath)
 	return nil
+}
+
+func (t *tts) GetSay(text string) ([]byte, error) {
+	filepath, err := t.getSayFilename(text)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Failed to retrieve sound file")
+	}
+	return ioutil.ReadFile(filepath)
 }

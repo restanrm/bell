@@ -138,13 +138,14 @@ func prepareAPI(r *mux.Router) {
 	// register metrics endpoint
 
 	api.HandleFunc("/", instProm("root", localHttp.ListSounds(sounds)))
-	api.HandleFunc("/play/{sound:[-a-zA-Z0-9]+}", instProm("play", localHttp.SoundPlayer(sounds)))
+	api.HandleFunc("/play/{sound:[-a-zA-Z0-9]+}", instProm("play", localHttp.SoundPlayer(sounds, cs)))
 	api.HandleFunc("/sounds", instProm("add", localHttp.AddSound(sounds))).Methods("POST")
 	api.HandleFunc("/sounds", instProm("list", localHttp.ListSounds(sounds))).Methods("GET")
 	api.HandleFunc("/sounds/{sound:[-a-zA-Z0-9]+}", instProm("delete", localHttp.DeleteSound(sounds))).Methods("DELETE")
 	api.HandleFunc("/sounds/{sound:[-a-zA-Z0-9]+}", instProm("get", localHttp.GetSound(sounds))).Methods("GET")
 
-	api.HandleFunc("/tts", instProm("say", localHttp.TtsPostHandler())).Methods("POST")
+	api.HandleFunc("/tts", instProm("say", localHttp.TtsPostHandler(cs))).Methods("POST")
+	api.HandleFunc("/tts/retrieve", instProm("getsay", localHttp.TtsGetPostHandler())).Methods("POST")
 	api.HandleFunc("/tts", instProm("sayform", localHttp.TtsGetHandler())).Methods("GET")
 
 	api.HandleFunc("/mattermost", instProm("mattermost", localHttp.MattermostHandler(sounds))).Methods("POST")

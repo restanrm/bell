@@ -137,8 +137,9 @@ var listTagsCmd = &cobra.Command{
 }
 
 var listClientsCmd = &cobra.Command{
-	Use:   "clients",
-	Short: "List clients connected to bell server that can play sounds",
+	Use:     "clients",
+	Aliases: []string{"players"},
+	Short:   "List clients connected to bell server that can play sounds",
 	Run: func(cmd *cobra.Command, args []string) {
 		address, err := url.Parse(viper.GetString("bell.address") + ListClientsPath)
 		if err != nil {

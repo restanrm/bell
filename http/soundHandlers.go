@@ -36,7 +36,7 @@ func WebLogger(h http.Handler) http.Handler {
 }
 
 // SoundPlayer allow to play a sound from sounder service
-func SoundPlayer(vault sound.Sounder) http.HandlerFunc {
+func SoundPlayer(vault sound.Sounder, sender Sender) http.HandlerFunc {
 	m := new(player.MpvPlayer)
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
@@ -49,21 +49,22 @@ func SoundPlayer(vault sound.Sounder) http.HandlerFunc {
 			return
 		}
 		var err error
-		if _, ok := r.URL.Query()["tag"]; ok {
-			err = vault.PlaySoundByTag(sound, m)
+		if dest, ok := r.URL.Query()["destination"]; ok {
+			logrus.WithFields(logrus.Fields{
+				"destination": dest[0],
+				"sound":       sound,
+			}).Infof("Sending play order to registerd client")
+			PlayOnClient(sender, dest[0], sound)
 		} else {
 			err = vault.PlaySound(sound, m)
+			if err != nil {
+				w.WriteHeader(http.StatusNotFound)
+				logrus.WithFields(logrus.Fields{
+					"name": sound,
+				}).Info("Sound or tag has not been found in store")
+				return
+			}
 		}
-		if err != nil {
-			w.WriteHeader(http.StatusNotFound)
-			logrus.WithFields(logrus.Fields{
-				"name": sound,
-			}).Info("Sound or tag has not been found in store")
-			return
-		}
-		logrus.WithFields(logrus.Fields{
-			"sound": sound,
-		}).Debug("Sound have been found, playing now…")
 	}
 }
 
