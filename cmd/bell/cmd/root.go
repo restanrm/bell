@@ -46,6 +46,9 @@ var rootCmd = &cobra.Command{
 	Long: `Bell command can run a bell server or only the front interface, or both.
 By default, both the front and the API are run on the same server.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		viper.SetDefault("soundDir", filepath.Join(viper.GetString("dataDir"), "sounds"))
+		viper.SetDefault("TTSDir", filepath.Join(viper.GetString("dataDir"), "tts"))
+		fmt.Println(viper.GetString("soundDir"))
 		if !viper.GetBool("flite") {
 			exitIfNotSetted("polly.accessKey")
 			exitIfNotSetted("polly.secretKey")
@@ -88,9 +91,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&serverOptions.front, "front", "f", false, "Allows to run the front separatly from the backend")
 	rootCmd.Flags().StringP("dataDir", "d", "data", "Directory where all sounds and tts sounds are stored. The configuration file should also be located there.")
 	viper.BindPFlag("dataDir", rootCmd.Flags().Lookup("dataDir"))
-	viper.SetDefault("soundDir", filepath.Join(viper.GetString("dataDir"), "sounds"))
-	viper.SetDefault("TTSDir", filepath.Join(viper.GetString("dataDir"), "tts"))
-	rootCmd.Flags().StringP("config", "c", "data/store.json", "Configuration file where description of the sounds are stored")
+	rootCmd.Flags().StringP("config", "c", "store.json", "Configuration file where description of the sounds are stored")
 	viper.BindPFlag("storefile", rootCmd.Flags().Lookup("config"))
 }
 
@@ -131,7 +132,7 @@ func exitIfNotSetted(key string) {
 
 func prepareAPI(r *mux.Router) {
 	var sounds sound.Sounder
-	sounds = sound.New(viper.GetString("storefile"))
+	sounds = sound.New(filepath.Join(viper.GetString("dataDir"), viper.GetString("storefile")))
 	sounds = sound.NewLoggingSound(sounds)
 
 	api := r.PathPrefix("/api/v1").Subrouter()
