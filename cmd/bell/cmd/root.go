@@ -19,6 +19,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -85,6 +86,12 @@ func init() {
 
 	rootCmd.Flags().BoolVarP(&serverOptions.api, "api", "a", false, "Allows to run the api as standalone service")
 	rootCmd.Flags().BoolVarP(&serverOptions.front, "front", "f", false, "Allows to run the front separatly from the backend")
+	rootCmd.Flags().StringP("dataDir", "d", "data", "Directory where all sounds and tts sounds are stored. The configuration file should also be located there.")
+	viper.BindPFlag("dataDir", rootCmd.Flags().Lookup("dataDir"))
+	viper.SetDefault("soundDir", filepath.Join(viper.GetString("dataDir"), "sounds"))
+	viper.SetDefault("TTSDir", filepath.Join(viper.GetString("dataDir"), "tts"))
+	rootCmd.Flags().StringP("config", "c", "data/store.json", "Configuration file where description of the sounds are stored")
+	viper.BindPFlag("storefile", rootCmd.Flags().Lookup("config"))
 }
 
 var serverOptions struct {
@@ -94,10 +101,6 @@ var serverOptions struct {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	viper.BindEnv("storefile", "STORE_FILE")
-	viper.SetDefault("storefile", "store.json")
-	viper.BindEnv("soundDir", "SOUND_DIR")
-	viper.SetDefault("soundDir", "sounds")
 	viper.BindEnv("listen", "LISTEN_ADDR")
 	viper.SetDefault("listen", ":10101")
 	viper.BindEnv("polly.accessKey", "POLLY_ACCESS_KEY")

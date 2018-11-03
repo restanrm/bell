@@ -6,14 +6,16 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/pkg/errors"
 	"github.com/restanrm/bell/player"
 	"github.com/restanrm/bell/sound"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 var rxSound = regexp.MustCompile(`^[-a-zA-Z0-9]+$`)
@@ -114,12 +116,20 @@ func AddSound(vault sound.Sounder) http.HandlerFunc {
 		}
 		defer file.Close()
 
-		soundFilepath := fmt.Sprintf("/tmp/bell-sound-%v.mp3", uuid.New().String())
+		soundFilepath := filepath.Join(viper.GetString("soundDir"), fmt.Sprintf("%v.mp3", soundName))
+		err = dirExist(soundFilepath)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			logrus.WithError(err).Errorf("Directory to store sound doesn't exist")
+			return
+		}
 		f, err := os.OpenFile(soundFilepath, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
 				"error": err,
 			}).Error("Failed to open file to save new sound")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
 		defer f.Close()
 		io.Copy(f, file)
@@ -131,6 +141,23 @@ func AddSound(vault sound.Sounder) http.HandlerFunc {
 			}).Error("Failed to add new sound")
 		}
 	}
+}
+
+func dirExist(filename string) error {
+	dir := filepath.Dir(filename)
+	_, err := os.Stat(dir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			// error is not known
+			return errors.Wrapf(err, "Couldn't get stat informations on path: %v", dir)
+		}
+		// path doesn't exist, creating it
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to create directory to store sound files")
+		}
+	}
+	return nil
 }
 
 // DeleteSound allows to delete sound from library

@@ -33,9 +33,9 @@ VOLUME /data
 
 COPY --from=builder /go/bin/bell /usr/local/bin/bell
 COPY --from=builder /go/bin/bellctl /usr/local/bin/bellctl
-COPY store.json /data/store.json
-COPY sounds /data/sounds
+COPY data/store.json /data/store.json
+COPY data/sounds /data/sounds
 
 EXPOSE 10101
 
-ENTRYPOINT ["bell"]
+ENTRYPOINT ["bell","-d","/data"]

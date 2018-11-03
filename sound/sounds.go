@@ -4,14 +4,15 @@ package sound
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"sort"
 	"sync"
 
+	"github.com/pkg/errors"
 	"github.com/restanrm/bell/player"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -36,7 +37,8 @@ type Sound struct {
 }
 
 type inMemorySounds struct {
-	m map[string]Sound
+	configFile string
+	m          map[string]Sound
 	sync.RWMutex
 }
 
@@ -49,8 +51,14 @@ var (
 
 // New create a new instance of a sounder
 func New(filepath string) *inMemorySounds {
+	err := dirExist(filepath)
+	if err != nil {
+		logrus.Fatal(errors.Wrapf(err, "Failed to find or create directory to store configuration file"))
+		os.Exit(-1)
+	}
 	ims := &inMemorySounds{
-		m: make(map[string]Sound),
+		configFile: filepath,
+		m:          make(map[string]Sound),
 	}
 	ss, err := load(filepath)
 	if err != nil {
@@ -67,8 +75,31 @@ func New(filepath string) *inMemorySounds {
 	return ims
 }
 
-func load(filepath string) ([]Sound, error) {
-	fd, err := os.Open(filepath)
+func dirExist(filename string) error {
+	dir := filepath.Dir(filename)
+	_, err := os.Stat(dir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			// error is not known
+			return errors.Wrapf(err, "Couldn't get stat informations on path: %v", dir)
+		}
+		// path doesn't exist, creating it
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to create directory to store configuration files")
+		}
+	}
+	return nil
+}
+
+type ssto struct {
+	Name     string   `json:"name"`
+	FileName string   `json:"file_name"`
+	Tags     []string `json:"tags"`
+}
+
+func load(fp string) ([]Sound, error) {
+	fd, err := os.Open(fp)
 	if err != nil {
 		return nil, err
 	}
@@ -76,12 +107,6 @@ func load(filepath string) ([]Sound, error) {
 	data, err := ioutil.ReadAll(fd)
 	if err != nil {
 		return nil, err
-	}
-
-	type ssto struct {
-		Name     string   `json:"name"`
-		FileName string   `json:"file_name"`
-		Tags     []string `json:"tags"`
 	}
 
 	var ss []ssto
@@ -94,12 +119,11 @@ func load(filepath string) ([]Sound, error) {
 	for _, s := range ss {
 		output = append(output, Sound{
 			Name:     s.Name,
-			filePath: viper.GetString("soundDir") + "/" + s.FileName,
+			filePath: filepath.Join(viper.GetString("soundDir"), s.FileName),
 			Tags:     s.Tags,
 		})
 	}
 	return output, nil
-
 }
 
 // Load some sounds into collection
@@ -113,6 +137,25 @@ func Load(file string) Sounder {
 	return sounds
 }
 
+func (s inMemorySounds) save() error {
+	var ss []ssto
+	for k, v := range s.m {
+		ss = append(ss, ssto{Name: k, FileName: v.filePath, Tags: v.Tags})
+	}
+
+	f, err := os.OpenFile(s.configFile, os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to open configuration file to write new content")
+	}
+	defer f.Close()
+
+	err = json.NewEncoder(f).Encode(ss)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to encode store as json struct")
+	}
+	return nil
+}
+
 // CreateSound a new sound in a collections. The file is already on the disk
 func (s inMemorySounds) CreateSound(name, filepath string, tags ...string) error {
 	s.Lock()
@@ -124,6 +167,11 @@ func (s inMemorySounds) CreateSound(name, filepath string, tags ...string) error
 		Tags:     tags,
 	}
 	s.m[name] = ss
+
+	err := s.save()
+	if err != nil {
+		return errors.Wrapf(err, "Failed to save the current state of the sound library")
+	}
 	return nil
 }
 
@@ -131,8 +179,11 @@ func (s inMemorySounds) CreateSound(name, filepath string, tags ...string) error
 func (s inMemorySounds) UpdateSound(sound Sound) error {
 	s.Lock()
 	defer s.Unlock()
-
 	s.m[sound.Name] = sound
+	err := s.save()
+	if err != nil {
+		return errors.Wrapf(err, "Failed to save the current state of the sound library")
+	}
 	return nil
 }
 

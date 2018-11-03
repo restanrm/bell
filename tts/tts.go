@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 	"github.com/restanrm/bell/player"
@@ -36,14 +37,34 @@ func NewTTS(flite bool, accessKey, secretKey string) *tts {
 	return &tts{polly: polly, flite: flite}
 }
 
+func dirExist(filename string) error {
+	dir := filepath.Dir(filename)
+	_, err := os.Stat(dir)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			// error is not known
+			return errors.Wrapf(err, "Couldn't get stat informations on path: %v", dir)
+		}
+		// path doesn't exist, creating it
+		err = os.MkdirAll(dir, 0755)
+		if err != nil {
+			return errors.Wrapf(err, "Failed to create directory to store TTS files")
+		}
+	}
+	return nil
+}
+
 // createAudioFlite creates an audiofile with the system command "flite"
 func (t *tts) createAudioFlite(text, filename string) error {
+	err := dirExist(filename)
+	if err != nil {
+		return err
+	}
 	cmd := exec.Command("flite",
 		"-t", text,
 		"-o", filename,
 		"-voice", "awb",
 	)
-
 	out, err := cmd.Output()
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -59,6 +80,10 @@ func (t *tts) createAudioFlite(text, filename string) error {
 
 // createAudioPolly creates an audiofile with the polly API
 func (t *tts) createAudioPolly(text, filename string) error {
+	err := dirExist(filename)
+	if err != nil {
+		return err
+	}
 	out, err := t.polly.Speech(text)
 	if err != nil {
 		logrus.WithFields(logrus.Fields{
@@ -95,7 +120,7 @@ func exist(filename string) bool {
 
 func (t *tts) getSayFilename(text string) (string, error) {
 	var err error
-	filepath := "/tmp/" + getHash(text)
+	filepath := filepath.Join(viper.GetString("TTSDir"), getHash(text))
 
 	fliteFilename := filepath + ".wav"
 	pollyFilename := filepath + ".mp3"
