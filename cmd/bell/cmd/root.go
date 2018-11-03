@@ -165,9 +165,9 @@ func prepareFront(r *mux.Router) {
 	f := r.PathPrefix("/").Subrouter()
 
 	if viper.GetBool("embed.front") {
-		f.Handle("/", instProm("front", http.FileServer(statikFS).ServeHTTP))
+		f.PathPrefix("/").HandlerFunc(instProm("front", http.FileServer(statikFS).ServeHTTP))
 	} else {
-		f.Handle("/", instProm("front", http.FileServer(http.Dir("front/dist")).ServeHTTP))
+		f.PathPrefix("/").HandlerFunc(instProm("front", http.FileServer(http.Dir("front/dist")).ServeHTTP))
 	}
 }
 
