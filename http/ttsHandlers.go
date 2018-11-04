@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 
@@ -36,9 +37,19 @@ func TtsPostHandler(sender Sender) http.HandlerFunc {
 				"destination": dest[0],
 				"sound":       text,
 			}).Infof("Sending text to speech order to registered client")
-			SayOnClient(sender, dest[0], text)
+			err := SayOnClient(sender, dest[0], text)
+			if err != nil {
+				logrus.WithError(err).Errorf("Failed to send request to client")
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(w, "Failed to send tts request to client")
+			}
 		} else {
-			t.Say(text, m)
+			err := t.Say(text, m)
+			if err != nil {
+				logrus.WithError(err).Errorf("Failed to convert text to sound")
+				w.WriteHeader(http.StatusInternalServerError)
+				fmt.Fprintf(w, "Failed to convert text to sound")
+			}
 		}
 	}
 }
