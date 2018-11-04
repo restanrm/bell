@@ -38,4 +38,4 @@ COPY data/sounds /data/sounds
 
 EXPOSE 10101
 
-ENTRYPOINT ["bell","-d","/data"]
+CMD ["bell","-d","/data"]
