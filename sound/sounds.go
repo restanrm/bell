@@ -140,7 +140,7 @@ func Load(file string) Sounder {
 func (s inMemorySounds) save() error {
 	var ss []ssto
 	for k, v := range s.m {
-		ss = append(ss, ssto{Name: k, FileName: v.filePath, Tags: v.Tags})
+		ss = append(ss, ssto{Name: k, FileName: filepath.Base(v.filePath), Tags: v.Tags})
 	}
 
 	f, err := os.OpenFile(s.configFile, os.O_CREATE|os.O_WRONLY, 0644)
