@@ -48,7 +48,6 @@ By default, both the front and the API are run on the same server.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		viper.SetDefault("soundDir", filepath.Join(viper.GetString("dataDir"), "sounds"))
 		viper.SetDefault("TTSDir", filepath.Join(viper.GetString("dataDir"), "tts"))
-		fmt.Println(viper.GetString("soundDir"))
 		if !viper.GetBool("flite") {
 			exitIfNotSetted("polly.accessKey")
 			exitIfNotSetted("polly.secretKey")
