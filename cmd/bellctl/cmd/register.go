@@ -49,11 +49,16 @@ var registerCmd = &cobra.Command{
 			}).Error("Failed to build url")
 			return
 		}
-		address.Scheme = "ws"
-		c, _, err := websocket.DefaultDialer.Dial(address.String(), nil)
+		if address.Scheme == "https" {
+			address.Scheme = "wss"
+		} else {
+			address.Scheme = "ws"
+		}
+		c, r, err := websocket.DefaultDialer.Dial(address.String(), nil)
 		if err != nil {
 			logrus.WithFields(logrus.Fields{
-				"error": err,
+				"error":    err,
+				"response": fmt.Sprintf("%#v", r),
 			}).Error("Failed create websocket connection to server")
 			return
 		}
