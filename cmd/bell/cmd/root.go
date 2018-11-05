@@ -115,6 +115,8 @@ func initConfig() {
 	viper.BindEnv("verbose", "VERBOSE")
 	viper.SetDefault("verbose", false)
 	viper.BindEnv("mattermost.token", "MATTERMOST_SLASH_TOKEN")
+	viper.SetDefault("websocket.checkorigin", true)
+	viper.BindEnv("websocket.checkorigin", "WEBSOCKET_CHECKORIGIN")
 	viper.AutomaticEnv() // read in environment variables that match
 
 	if viper.GetBool("verbose") {

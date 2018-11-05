@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/restanrm/bell/connstore"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 type Lister interface {
@@ -26,6 +27,9 @@ type ErrorResponse struct {
 func RegisterClients(registerer Registerer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		upgrader := websocket.Upgrader{}
+		if !viper.GetBool("websocket.checkorigin") {
+			upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+		}
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			logrus.WithError(err).Errorf("Failed to upgrade the connection")
