@@ -148,16 +148,23 @@ func (c *ConnStore) Register(conn *websocket.Conn) error {
 	}
 	c.store[name] = cl
 
+	var done = make(chan struct{})
+
 	// readpump now looks for disconnect and close
 	go func() {
 		defer cl.conn.Close()
+		defer close(done)
 		conn.SetReadDeadline(time.Now().Add(pongWait))
 		conn.SetPongHandler(func(string) error { cl.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 		for {
 			_, _, err := cl.conn.ReadMessage()
 			if err != nil {
-				if websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure, websocket.CloseGoingAway) {
-					logrus.WithError(err).Errorf("Clients closing")
+				if !websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+					// normal close
+					logrus.WithField("client", name).Infof("Clients closing")
+				} else {
+					// not normal close message
+					logrus.WithError(err).Errorf("Abnormal closure of the websocket")
 				}
 			}
 			delete(c.store, name)
@@ -177,6 +184,8 @@ func (c *ConnStore) Register(conn *websocket.Conn) error {
 					logrus.WithError(err).Errorf("Failed to send message to client")
 					return
 				}
+			case <-done:
+				return
 			case <-tick:
 				err := conn.WriteMessage(websocket.PingMessage, nil)
 				if err != nil {

@@ -120,13 +120,15 @@ func readOrder(c ReadMessager, done chan struct{}) {
 	}
 	defer os.RemoveAll(dir)
 	for {
-		mt, message, err := c.ReadMessage()
+		_, message, err := c.ReadMessage()
 		if err != nil {
-			if websocket.IsCloseError(err) {
-				fmt.Println("closeError")
+			if !websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+				// normal close
+				logrus.Info("Closing the websocket")
+			} else {
+				// not expected error
+				logrus.WithError(err).Errorf("Failed to received some message")
 			}
-			fmt.Println(mt, err)
-			logrus.WithError(err).Error("Failed to receive some message")
 			return
 		}
 		s := &connstore.PlayerRequest{}
