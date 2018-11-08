@@ -86,12 +86,34 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
+	viper.BindEnv("listen", "LISTEN_ADDR")
+	viper.SetDefault("listen", ":10101")
+	viper.BindEnv("polly.accessKey", "POLLY_ACCESS_KEY")
+	viper.BindEnv("polly.secretKey", "POLLY_SECRET_KEY")
+	viper.SetDefault("flite", true)
+	viper.SetDefault("polly.voice", "Amy")
+	viper.SetDefault("embed.front", true)
+	viper.SetDefault("verbose", false)
+	viper.BindEnv("mattermost.token", "MATTERMOST_SLASH_TOKEN")
+
+	if viper.GetBool("verbose") {
+		logrus.SetLevel(logrus.DebugLevel)
+	}
+
 	rootCmd.Flags().BoolVarP(&serverOptions.api, "api", "a", false, "Allows to run the api as standalone service")
 	rootCmd.Flags().BoolVarP(&serverOptions.front, "front", "f", false, "Allows to run the front separatly from the backend")
+
 	rootCmd.Flags().StringP("dataDir", "d", "data", "Directory where all sounds and tts sounds are stored. The configuration file should also be located there.")
 	viper.BindPFlag("dataDir", rootCmd.Flags().Lookup("dataDir"))
+
 	rootCmd.Flags().StringP("config", "c", "store.json", "Configuration file where description of the sounds are stored")
 	viper.BindPFlag("storefile", rootCmd.Flags().Lookup("config"))
+
+	rootCmd.Flags().Bool("disable-websocket-checkorigin", false, "Disable the check of the origin for the websockets")
+	viper.BindPFlag("websocket.checkorigin.disabled", rootCmd.Flags().Lookup("disable-websocket-checkorigin"))
+
+	viper.AutomaticEnv() // read in environment variables that match
+
 }
 
 var serverOptions struct {
@@ -101,26 +123,6 @@ var serverOptions struct {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-	viper.BindEnv("listen", "LISTEN_ADDR")
-	viper.SetDefault("listen", ":10101")
-	viper.BindEnv("polly.accessKey", "POLLY_ACCESS_KEY")
-	viper.BindEnv("polly.secretKey", "POLLY_SECRET_KEY")
-	viper.BindEnv("flite", "FLITE")
-	viper.SetDefault("flite", true)
-	viper.BindEnv("polly.voice", "POLLY_VOICE")
-	viper.SetDefault("polly.voice", "Amy")
-	viper.BindEnv("embed.front", "EMBED_FRONT")
-	viper.SetDefault("embed.front", true)
-	viper.BindEnv("verbose", "VERBOSE")
-	viper.SetDefault("verbose", false)
-	viper.BindEnv("mattermost.token", "MATTERMOST_SLASH_TOKEN")
-	viper.SetDefault("websocket.checkorigin", true)
-	viper.BindEnv("websocket.checkorigin", "WEBSOCKET_CHECKORIGIN")
-	viper.AutomaticEnv() // read in environment variables that match
-
-	if viper.GetBool("verbose") {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
 }
 
 func exitIfNotSetted(key string) {

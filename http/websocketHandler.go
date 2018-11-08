@@ -27,7 +27,7 @@ type ErrorResponse struct {
 func RegisterClients(registerer Registerer) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		upgrader := websocket.Upgrader{}
-		if !viper.GetBool("websocket.checkorigin") {
+		if viper.GetBool("websocket.checkorigin.disabled") {
 			upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 		}
 		conn, err := upgrader.Upgrade(w, r, nil)
