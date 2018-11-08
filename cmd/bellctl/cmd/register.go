@@ -21,11 +21,11 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/restanrm/bell/connstore"
@@ -40,71 +40,68 @@ var registerCmd = &cobra.Command{
 	Use:   "register",
 	Short: "Register allows to connect to websocket of bell server. It will receive play orders and run them with `mpv`.",
 	Run: func(cmd *cobra.Command, args []string) {
-		address, err := url.Parse(viper.GetString("bell.address") + RegisterPath)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error":          err,
-				"server address": viper.GetString("bell.address"),
-				"method":         "RegisterCmd.Run",
-			}).Error("Failed to build url")
-			return
+		op := func() error {
+			return runRegister(viper.GetString("bell.address"))
 		}
-		if address.Scheme == "https" {
-			address.Scheme = "wss"
-		} else {
-			address.Scheme = "ws"
+		notify := func(err error, t time.Duration) {
+			logrus.WithError(err).Warnf("Failed connection. Waiting for %v before retrying", t)
 		}
-		c, r, err := websocket.DefaultDialer.Dial(address.String(), nil)
-		if err != nil {
-			logrus.WithFields(logrus.Fields{
-				"error":    err,
-				"response": fmt.Sprintf("%#v", r),
-			}).Error("Failed create websocket connection to server")
-			return
-		}
-		defer c.Close()
+		bo := backoff.NewExponentialBackOff()
+		bo.MaxElapsedTime = 0
 
-		// send name to server
-		err = sendName(c, viper.GetString("register.name"))
-		if err != nil {
-			logrus.WithError(err).Errorf("Failed to send name to destination")
-			return
-		}
-
-		// read the name that is actually used by the server
-		name, err := readName(c)
-		if err != nil {
-			logrus.WithError(err).Errorf("Failed to read name from the server")
-			return
-		}
-		logrus.Infof("Client registered as %q", name)
-
-		// start code to listen to play order or closing message
-		done := make(chan struct{})
-		go readOrder(c, done)
-
-		// register on local closing request
-		interrupt := make(chan os.Signal, 1)
-		signal.Notify(interrupt, os.Interrupt, os.Kill)
-		for {
-			select {
-			case <-done:
-				return
-			case <-interrupt:
-				logrus.Infof("Interruption received")
-				err = c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, "closing"))
-				if err != nil {
-					logrus.WithError(err).Errorf("Failed to send normal closing message")
-					return
-				}
-				select {
-				case <-done:
-				case <-time.After(time.Second):
-				}
-				return
-			}
-		}
+		backoff.RetryNotify(op, bo, notify)
 	},
+}
+
+// runRegister is the main loop of the register command. it launches the
+// webSocket. It it quits on a configuration error or wanted action from the
+// user, it will not be restarted (os.Exit)
+// else, an error is returned and the function is restarted by the backoff function
+func runRegister(bellAddress string) error {
+	address, err := url.Parse(viper.GetString("bell.address") + RegisterPath)
+	if err != nil {
+		logrus.WithFields(logrus.Fields{
+			"error":          err,
+			"server address": viper.GetString("bell.address"),
+			"method":         "RegisterCmd.Run",
+		}).Error("Failed to build url, cannot retry")
+		os.Exit(1)
+	}
+	if address.Scheme == "https" {
+		address.Scheme = "wss"
+	} else {
+		address.Scheme = "ws"
+	}
+	c, r, err := websocket.DefaultDialer.Dial(address.String(), nil)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to create websocket connection to server. response: %v", fmt.Sprintf("%#v", r))
+	}
+	defer c.Close()
+
+	// send name to server
+	err = sendName(c, viper.GetString("register.name"))
+	if err != nil {
+		return errors.Wrapf(err, "Failed to send name to destination")
+	}
+
+	// read the name that is actually used by the server
+	name, err := readName(c)
+	if err != nil {
+		return errors.Wrapf(err, "Failed to read name from the server")
+	}
+	logrus.Infof("Client registered as %q", name)
+
+	// start code to listen to play order or closing message
+	done := make(chan struct{})
+	go readOrder(c, done)
+
+	for {
+		select {
+		case <-done:
+			return errors.New("channel has been closed")
+		}
+	}
+	return nil
 }
 
 type ReadMessager interface {
