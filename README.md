@@ -129,9 +129,21 @@ docker run --rm -it \
 
 
 TODO:
-- [ ] implement tags in front
+- [x] implement tags in front
+- [x] add dest selection
+- [x] add registering selection
+- [x] add tag selection
+- [x] implement the registering part on the front
 - [ ] improve upload in front
-- [ ] put everything in one page on the front
-- [ ] implement the registering part on the front
+  - [ ] add tags listing
+  - [ ] allow to create new tags
+  - [ ] upload sound with selected tags
+- [x] put everything in one page on the front
+- [ ] create a good design to support it
+- [ ] add TTS client
+  - [ ] add new type of opbject in websockets
+  - [ ] implement it on bellctl
+  - [ ] implement it on frontend
+  - [ ] update documentation
 
 

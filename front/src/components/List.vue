@@ -1,24 +1,26 @@
 <template lang="jade">
-  .list
-    .jumbotron.player
-      .container-fluid
-        audio(
-          :src="soundPath",
-          ref="player",
-          autoplay,
-        )
-        .row.searcher
-          .toggler.col-sm-12.col-md-2.col-lg-2
-            bootstrap-toggle(
-              v-model="playOnServer",
-              :options="{on: '<i class=\"fa fa-play\"></i> Server', off:'<i class=\"fa fa-play\"></i> Locally'}",
-            )
-          input.col-sm-12.offset-sm-0.col-md-6.offset-md-4.col-lg-4.offset-lg-6(type="text",v-model="search",placeholder="search sound")
-        .row
-          .col-sm-6.col-md-4.col-lg-2(v-for="sound in filteredSounds")
-            button.btn.btn-primary.play-btn(
-              v-on:click="play(sound.name)",
-              ){{sound.name}}
+  div.player
+    audio(
+      :src="soundPath",
+      ref="player",
+      autoplay,
+    )
+
+    // list options (enable tags or select sound)
+    .options
+      .searcher
+        .toggler
+          bootstrap-toggle(
+            v-model="tag",
+            :options="{off:'<i class=\"fa fa-play\"></i> Sounds', on:'<i class=\"fa fa-pause\"></i> Tags'}"
+          )
+      input(type="text",v-model="search",placeholder="search sound")
+
+    .list
+      div(v-for="elem in elements")
+        button.btn.btn-primary.play-btn(
+          v-on:click="play(elem)",
+          ){{elem}}
 </template>
 
 <script>
@@ -26,12 +28,18 @@
   export default {
     name: 'list',
     components: {BootstrapToggle},
+    props: {
+      destination: String,
+      // tag: Boolean,
+      soundToPlay: String
+    },
     data () {
       var basepath = ''
       if (process.env.NODE_ENV === 'development') {
         basepath = 'http://localhost:10101'
       };
       return {
+        tag: false,
         search: '',
         sounds: [],
         playOnServer: true,
@@ -41,14 +49,49 @@
         soundsURL: basepath + '/api/v1/sounds'
       }
     },
+    computed: {
+      tagNames: function () {
+        var t = []
+        // push all tags in 't'
+        this.sounds.forEach(sound => {
+          if (sound.tags) {
+            sound.tags.forEach(tag => { t.push(tag) })
+          }
+        })
+        // deduplicates tags in t
+        var res = t.filter(function (value, index, self) {
+          return self.indexOf(value) === index
+        }).filter(tag => {
+          // filter out with filter
+          return tag.toLowerCase().includes(this.search.toLowerCase())
+        })
+        return res
+      },
+      soundNames: function () {
+        var list = []
+        // filter sounds and then put all sound.name in a list.
+        this.sounds.filter(sound => {
+          return sound.name.toLowerCase().includes(this.search.toLowerCase())
+        }).forEach(sound => {
+          list.push(sound.name)
+        })
+        return list
+      },
+      elements: function () {
+        if (this.tag) {
+          return this.tagNames
+        } else {
+          return this.soundNames
+        }
+      }
+    },
     methods: {
       play: function (sound) {
-        if (this.playOnServer) {
-          this.$http.get(this.playURL + sound)
-        } else {
-          this.soundPath = this.playLocallyURL + sound
-          this.$refs.player.play()
+        var url = this.playURL + sound
+        if (this.destination !== '') {
+          url += '?destination=' + this.destination
         }
+        this.$http.get(url)
       },
       updateSounds: function () {
         this.$http.get(this.soundsURL).then(response => {
@@ -56,11 +99,18 @@
         })
       }
     },
-    computed: {
-      filteredSounds: function () {
-        return this.sounds.filter(sound => {
-          return sound.name.toLowerCase().includes(this.search.toLowerCase())
+    watch: {
+      soundToPlay: function () {
+        console.log('Watcher function: ' + this.soundToPlay)
+        // add event listener on ended event of player to reset soundToPlay value.
+        // else the watch trigger is never redone on update of same button
+        var self = this
+        this.$refs.player.addEventListener('ended', function () {
+          self.$emit('update:soundToPlay', '')
         })
+
+        this.soundPath = this.playLocallyURL + this.soundToPlay
+        this.$refs.player.play()
       }
     },
     created: function () {
@@ -76,6 +126,7 @@
 
   .player {
     background: $primary-darker;
+    padding: 2rem 1rem;
     margin: 0;
   }
 
@@ -99,20 +150,12 @@
         border-radius: 0px;
       }
       .toggle-on {
-        background: $primary;
+        background: $secondary-light;
       }
       .toggle-off {
-        background: $secondary-light;
+        background: $primary;
         color: white;
       }
-    }
-  }
-
-  .btn-primary {
-    border-color: $primary-light;
-    &:hover{
-      background-color: $primary;
-      border-color: $primary-light;
     }
   }
 
@@ -125,16 +168,32 @@
     }
   }
 
-  button.play-btn {
-    margin: 15px 0 !important;
-    padding: 15px 0 !important;
-    width: 100%;
-		background: $primary-dark;
-    border-color: $primary-light;
-    &:hover{
-      background: $secondary-light;
-      border-color: $primary-light;
-    }
+
+  div {
+    align-items: center;
   }
 
+  .options {
+    display: grid;
+    grid-gap: 20px;
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+
+  div.player div.list {
+    display: grid;
+    grid-gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+
+    button.play-btn {
+      margin: 15px 0 !important;
+      padding: 15px 0 !important;
+      width: 100%;
+      background: $primary-dark;
+      border-color: $primary-light;
+      &:hover{
+        background: $secondary-light;
+        border-color: $primary-light;
+      }
+    }
+  }
 </style>

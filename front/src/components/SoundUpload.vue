@@ -19,14 +19,14 @@
       .row(v-show="soundName!=''")
         .col-md-4
         button.btn.btn-success.col-md-4.soundUploadBtn(
-          v-if="!$refs.upload || !$refs.upload.active && soundName!=''", 
+          v-if="!$refs.upload || !$refs.upload.active && soundName!=''",
           @click.prevent="$refs.upload.active = true",
           type="button",
           )
           i.fa.fa-upload
           span  Start uploading
         button.btn.btn-danger.col-md-4.soundUploadBtn(
-          v-else="$refs.upload && $refs.upload.active", 
+          v-else="$refs.upload && $refs.upload.active",
           @click.prevent="$refs.upload.active = false",
           type="button",
           )
@@ -54,6 +54,7 @@
       return {
         uploadPath: basepath + '/api/v1/sounds',
         filename: '',
+        files: [],
         soundName: ''
       }
     },
