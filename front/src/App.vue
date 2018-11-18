@@ -1,26 +1,83 @@
+
 <template lang="jade">
   .app
-    nav.navbar.navbar-toggleable-md
+
+    nav.navbar.navbar-expand-lg
+
+      a.navbar-brand(
+        href="#"
+        v-on:click="currentTab = ''"
+      ) Bell
+
+      div.collapse.navbar-collapse#navbarSupportedContent
+        ul.navbar-nav.mr-auto
+          li.nav-item(
+            v-for="tab in tabs"
+            v-on:click="currentTab = tab"
+            v-bind:key="tab"
+          )
+            a(href="#") {{tab}}
+
       button.navbar-toggler.custom-toggler(type="button",
         data-toggle="collapse",
         data-target="#navbarSupportedContent",
         aria-controls="navbarSupportedContent",
-        aria-expanded="false",
+        aria-expanded="true",
         aria-label="Toggle navigation",
         )
         span.custom-toggler
           i.fa.fa-bars.white
-      a.navbar-brand(href="#") Bell
-      .collapse.navbar-collapse#navbarSupportedContent
-        router-link.nav-item.nav-link.active(to="/") List
-        router-link.nav-item.nav-link(to="/upload") Upload
-    router-view
+
+    Destination(
+      v-bind:class="{hidden: selectedComponent(currentTab, 'Destination')}"
+      v-bind:destination="dest"
+      v-on:update:destination="dest = $event"
+    )
+    Register(
+      v-bind:class="{hidden: selectedComponent(currentTab, 'Register')}"
+      v-bind:soundToPlay="soundToPlay"
+      v-on:register:play="soundToPlay = $event"
+    )
+    SoundUpload(
+      v-bind:class="{hidden: selectedComponent(currentTab, 'SoundUpload')}"
+    )
+
+    List(
+      v-bind:soundToPlay="soundToPlay"
+      v-on:update:soundToPlay="soundToPlay = $event"
+      v-bind:destination="dest"
+    )
+
 </template>
 
 <script>
-  
+  import Destination from '@/components/Destination'
+  import List from '@/components/List'
+  import SoundUpload from '@/components/SoundUpload'
+  import Register from '@/components/Register'
   export default {
-    name: 'app'
+    name: 'app',
+    components: {Destination, List, SoundUpload, Register},
+    data: function () {
+      return {
+        dest: 'test',
+        soundToPlay: '',
+        currentTab: '',
+        tabs: ['Register', 'Destination', 'SoundUpload']
+      }
+    },
+    methods: {
+      showDest: function () {
+        console.log(this.dest)
+        console.log(this.soundToPlay)
+      },
+      selectedComponent: function (component, target) {
+        if (component === target) {
+          return ''
+        }
+        return 'hidden'
+      }
+    }
   }
 </script>
 
@@ -30,7 +87,7 @@
     margin: 0;
     background: #141d26;
   }
-  
+
   #app {
     font-family: "Avenir", Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -56,7 +113,11 @@
     text-align: center;
     margin-top: 40px;
   }
-  
+
+  .hidden {
+    display: none;
+  }
+
   header {
     margin: 0;
     height: 56px;

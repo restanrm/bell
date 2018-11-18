@@ -15,3 +15,14 @@ $ternary-dark: #271863;
 $ternary-darker: #160850;
 $ternary-light: #5A4F88;
 $ternary-lighter: #7C749B;
+
+
+
+
+.btn-primary {
+    border-color: $primary-light;
+    &:hover{
+        background-color: $secondary-light;
+        border-color: $primary-light;
+    }
+}
