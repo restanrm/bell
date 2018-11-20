@@ -21,6 +21,7 @@
         button.btn.btn-primary.play-btn(
           v-on:click="play(elem)",
           ){{elem}}
+
 </template>
 
 <script>
