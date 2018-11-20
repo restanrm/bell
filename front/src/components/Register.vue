@@ -57,7 +57,7 @@
         // toggle the connect state
         this.share = !this.share
         if (!this.share) {
-          this.ws.close()
+          this.ws.close(1000)
           return
         }
 
@@ -89,7 +89,7 @@
         if (!this.share) {
           return
         }
-        this.ws.close()
+        this.ws.close(1000)
         this.share = !this.share
       }
     },
