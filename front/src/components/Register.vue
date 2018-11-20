@@ -5,6 +5,7 @@
 
       button.btn.btn-primary(
         v-on:click="register()"
+        v-bind:class="{ on: !share, off: share }"
       ) {{ share ? "Disconnect" : "Connect" }}
 
       input(
@@ -105,6 +106,14 @@
   .register {
     padding: 2rem 1rem;
     background: $primary-darker;
+
+    .on {
+      background: $secondary-light;
+    }
+
+    .off {
+      background: $ternary;
+    }
 
     .list {
       display: grid;
