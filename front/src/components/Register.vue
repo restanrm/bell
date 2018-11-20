@@ -69,9 +69,6 @@
         this.ws.onerror = function (event) {
           console.log('An error happened: ' + event)
         }
-        this.ws.onclose = function (event) {
-          console.log('close function called' + event)
-        }
         this.ws.onmessage = function (event) {
           var msg = JSON.parse(event.data)
           if (msg.name && msg.name !== '') {

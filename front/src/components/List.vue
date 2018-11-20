@@ -102,7 +102,6 @@
     },
     watch: {
       soundToPlay: function () {
-        console.log('Watcher function: ' + this.soundToPlay)
         // add event listener on ended event of player to reset soundToPlay value.
         // else the watch trigger is never redone on update of same button
         var self = this
