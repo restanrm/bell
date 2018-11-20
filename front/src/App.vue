@@ -31,6 +31,7 @@
     Destination(
       v-bind:class="{hidden: selectedComponent(currentTab, 'Destination')}"
       v-bind:destination="dest"
+      v-bind:reloadDest="reloadDest"
       v-on:update:destination="dest = $event"
     )
     Register(
@@ -63,6 +64,7 @@
         dest: 'test',
         soundToPlay: '',
         currentTab: '',
+        reloadDest: 0,
         tabs: ['Register', 'Destination', 'SoundUpload']
       }
     },
@@ -76,6 +78,13 @@
           return ''
         }
         return 'hidden'
+      }
+    },
+    watch: {
+      currentTab: function () {
+        if (this.currentTab === 'Destination') {
+          this.reloadDest++
+        }
       }
     }
   }

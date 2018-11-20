@@ -32,10 +32,13 @@
         clientsURL: basepath + '/api/v1/clients'
       }
     },
-    props: ['destination'],
+    props: ['destination', 'reloadDest'],
     watch: {
       client: function () {
         this.updateDest(this.client)
+      },
+      reloadDest: function () {
+        this.updateClients()
       }
     },
     methods: {
