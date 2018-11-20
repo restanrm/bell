@@ -5,15 +5,16 @@
 
       button.btn.btn-primary(
         v-on:click="register()"
-      ) {{ share ? "disconnect" : "connect" }}
+      ) {{ share ? "Disconnect" : "Connect" }}
 
       input(
         type="text"
         placeHolder="Your name"
         value=""
         v-model="name"
+        v-on:keydown.enter="register()"
+        v-on:click="unregister()"
       )
-
 
 </template>
 
@@ -81,6 +82,13 @@
             console.log('Received unhandled message: ' + msg)
           }
         }
+      },
+      unregister: function () {
+        if (!this.share) {
+          return
+        }
+        this.ws.close()
+        this.share = !this.share
       }
     },
     created: function () {
