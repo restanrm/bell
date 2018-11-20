@@ -14,6 +14,7 @@
         v-model="name"
         v-on:keydown.enter="register()"
         v-on:click="unregister()"
+        v-on:focus="$event.target.select()"
       )
 
 </template>
