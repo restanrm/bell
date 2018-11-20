@@ -167,6 +167,8 @@ func (c *ConnStore) Register(conn *websocket.Conn) error {
 					logrus.WithError(err).Errorf("Abnormal closure of the websocket")
 				}
 			}
+			c.mu.Lock()
+			defer c.mu.Unlock()
 			delete(c.store, name)
 			break
 		}
