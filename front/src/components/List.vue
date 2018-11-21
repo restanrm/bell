@@ -182,11 +182,12 @@
   div.player div.list {
     display: grid;
     grid-gap: 20px;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
 
     button.play-btn {
-      margin: 15px 0 !important;
       padding: 15px 0 !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
       width: 100%;
       background: $primary-dark;
       border-color: $primary-light;
