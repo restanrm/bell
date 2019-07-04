@@ -119,7 +119,7 @@ func readOrder(c ReadMessager, done chan struct{}) {
 	for {
 		_, message, err := c.ReadMessage()
 		if err != nil {
-			if !websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
+			if !websocket.IsUnexpectedCloseError(err, websocket.CloseNormalClosure) {
 				// normal close
 				logrus.Info("Closing the websocket")
 			} else {
