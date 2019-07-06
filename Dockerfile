@@ -1,6 +1,6 @@
 FROM node:9.5.0 as builder
 
-ARG GOVERSION=1.10.2
+ARG GOVERSION=1.12.0
 
 # Install golang and set GOPATH
 RUN cd /tmp/ && \
