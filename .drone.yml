@@ -1,0 +1,11 @@
+kind: pipeline
+name: default
+
+steps:
+- name: build-bellctl
+  image: golang:1.12-alpine
+  commands:
+  - apk add --no-cache git
+  - go mod tidy 
+  - cd cmd/bellctl
+  - go install
