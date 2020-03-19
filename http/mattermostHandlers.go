@@ -34,9 +34,14 @@ type SlashCommandResponse struct {
 	// props not implemented yet
 }
 
+type listSender interface {
+	Lister
+	Sender
+}
+
 // MattermostHandler handle mattermost /bell commands.
 // it allows to list and play sounds, and do some TTS.
-func MattermostHandler(vault sound.Sounder) http.HandlerFunc {
+func MattermostHandler(vault sound.Sounder, listSender listSender) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		rToken := r.FormValue("token")
 		logrus.Debug("rToken: ", rToken)
@@ -53,7 +58,7 @@ func MattermostHandler(vault sound.Sounder) http.HandlerFunc {
 		responseURL := r.FormValue("response_url")
 
 		// parse command and build response to send back to caller
-		response := parseCommand(vault, text)
+		response := parseCommand(vault, listSender, text)
 
 		jres, err := json.Marshal(response)
 		if err != nil {
@@ -72,7 +77,7 @@ func MattermostHandler(vault sound.Sounder) http.HandlerFunc {
 	}
 }
 
-func parseCommand(vault sound.Sounder, text string) (response SlashCommandResponse) {
+func parseCommand(vault sound.Sounder, listSender listSender, text string) (response SlashCommandResponse) {
 
 	response = SlashCommandResponse{
 		Type: Ephemeral,
@@ -88,8 +93,16 @@ func parseCommand(vault sound.Sounder, text string) (response SlashCommandRespon
 	command, arguments := arguments[0], arguments[1:]
 	switch command {
 	case "list":
-		sounds := vault.GetSounds()
-		response.Text = formatSounds(sounds)
+		switch {
+		case len(arguments) == 1:
+			if arguments[0] == "clients" || arguments[0] == "client" {
+				clients := listSender.List()
+				response.Text = formatClients(clients)
+			}
+		default:
+			sounds := vault.GetSounds()
+			response.Text = formatSounds(sounds)
+		}
 	case "play":
 		m := new(player.MpvPlayer)
 		switch {
@@ -103,13 +116,25 @@ func parseCommand(vault sound.Sounder, text string) (response SlashCommandRespon
 			}
 			response.Text = fmt.Sprintf(":musical_note: %q is playing :musical_note:", arguments[0])
 			response.Type = InChannel
-		case len(arguments) > 1 && arguments[0] == "-t":
-			err := vault.PlaySoundByTag(arguments[1], m)
+		case len(arguments) == 2 && arguments[0] == "-d":
+			response.Text = fmt.Sprintf("destination or sound hasn't been specified. See documentation.")
+		case len(arguments) > 2 && arguments[0] == "-d":
+			// send playing sound to destination
+			// arguments[0] should be "-d"
+			// arguments[1] should be the destination "supervision"
+			// arguments[2] should be the play ""
+			destination := arguments[1]
+			sound := arguments[2]
+			err := PlayOnClient(listSender, destination, sound)
 			if err != nil {
-				response.Text = fmt.Sprintf("Failed to play the tag: %v", err)
+				response.Text = fmt.Sprintf("Failed to play %v on destination %v: %v",
+					sound,
+					destination,
+					err,
+				)
 				return
 			}
-			response.Text = fmt.Sprintf(":musical_note: tag %q is playing :musical_note:", arguments[1])
+			response.Text = fmt.Sprintf(":musical_note: sound %q is playing on destination %q :musical_note:", sound, destination)
 			response.Type = InChannel
 		}
 	case "say":
@@ -145,6 +170,19 @@ func formatSounds(sounds []sound.Sound) (out string) {
 	out += fmt.Sprintf("|:--|:--|\n")
 	for _, sound := range sounds {
 		out += fmt.Sprintf("|%s|%s|\n", sound.Name, strings.Join(sound.Tags, ","))
+	}
+	return out
+}
+
+func formatClients(clients []string) (out string) {
+	if len(clients) <= 0 {
+		out += fmt.Sprintf("No clients have been registered yet")
+		return
+	}
+	out += fmt.Sprintf("|%s|\n", "Client")
+	out += fmt.Sprintf("|:--|\n")
+	for _, client := range clients {
+		out += fmt.Sprintf("|%s|\n", client)
 	}
 	return out
 }
