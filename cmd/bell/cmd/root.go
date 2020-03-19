@@ -155,7 +155,7 @@ func prepareAPI(r *mux.Router) {
 	api.HandleFunc("/tts/retrieve", instProm("getsay", localHttp.TtsGetPostHandler())).Methods("POST")
 	api.HandleFunc("/tts", instProm("sayform", localHttp.TtsGetHandler())).Methods("GET")
 
-	api.HandleFunc("/mattermost", instProm("mattermost", localHttp.MattermostHandler(sounds))).Methods("POST")
+	api.HandleFunc("/mattermost", instProm("mattermost", localHttp.MattermostHandler(sounds, cs))).Methods("POST")
 
 	// websocket handler
 	api.HandleFunc("/clients", instProm("connStoreList", localHttp.ListClients(cs))).Methods("Get")
