@@ -91,6 +91,7 @@ func init() {
 	viper.BindEnv("polly.accessKey", "POLLY_ACCESS_KEY")
 	viper.BindEnv("polly.secretKey", "POLLY_SECRET_KEY")
 	viper.SetDefault("flite", true)
+	viper.BindEnv("polly.voice", "POLLY_VOICE")
 	viper.SetDefault("polly.voice", "Amy")
 	viper.SetDefault("embed.front", true)
 	viper.SetDefault("verbose", false)
